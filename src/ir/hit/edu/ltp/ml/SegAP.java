@@ -1,7 +1,7 @@
 package ir.hit.edu.ltp.ml;
 
 import ir.hit.edu.ltp.basic.SegInstance;
-import ir.hit.edu.ltp.basic.SegPipe;
+import ir.hit.edu.ltp.basic.Pipe;
 import ir.hit.edu.ltp.dic.SegDic;
 import ir.hit.edu.ltp.io.SegIO;
 import ir.hit.edu.ltp.model.FeatureMap;
@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-
-import sun.misc.Perf;
 
 public class SegAP extends SegViterbi
 {
@@ -33,12 +31,12 @@ public class SegAP extends SegViterbi
 		Logger logger = Logger.getLogger("seg");
 
 		long startTime = System.currentTimeMillis();
-		logger.info("start get POS dictionary from dictionary file...");
+		logger.info("start to get seg dictionary from dictionary file...");
 
 		segDic = new SegDic();
 		segDic.loadSegDic(dicFile);
 
-		logger.info("finish geting POS dictionary!");
+		logger.info("finish geting seg dictionary!");
 		logger.info("There are total " + segDic.size() + " words in segmentation dictionary\n");
 
 		logger.info("load char type...");
@@ -55,7 +53,7 @@ public class SegAP extends SegViterbi
 		Vector<SegInstance> instList = SegIO.getSegInstanceFromNormalFile(trainingFile, segDic);
 		logger.info("instance number: " + instList.size());
 
-		Vector<SegPipe> segPipeList = new Vector<SegPipe>();
+		Vector<Pipe> segPipeList = new Vector<Pipe>();
 		logger.info("extract features from instance and map SegInstance to SegPipe...");
 		FeatureMap featMap = new FeatureMap(instList, allLabel, segPipeList);
 		logger.info("there are total " + featMap.feature2Int.size() + " features");
@@ -119,7 +117,7 @@ public class SegAP extends SegViterbi
 				for (int i = 0; i < predLabel.size(); i++)
 					predInstance.label.add(predLabel.elementAt(i));
 
-				SegPipe predPipe = new SegPipe(predInstance, model.featMap.feature2Int);
+				Pipe predPipe = new Pipe(predInstance, model.featMap.feature2Int);
 
 				//				System.out.println("segList: " + segPipeList.size());
 

@@ -3,20 +3,19 @@ package ir.hit.edu.ltp.ml;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Vector;
-
 import org.apache.log4j.Logger;
 
 import ir.hit.edu.ltp.basic.*;
-import ir.hit.edu.ltp.io.PosIO;
 import ir.hit.edu.ltp.model.*;
 import ir.hit.edu.ltp.util.CharType;
 import ir.hit.edu.ltp.dic.*;
+import ir.hit.edu.ltp.util.InputStreams;
+import ir.hit.edu.ltp.util.OutputStreams;
 
 /**
  * a base class which using Viterbi algorithm to decode
@@ -24,17 +23,22 @@ import ir.hit.edu.ltp.dic.*;
  * @author dzl
  * 
  */
-public class PosViterbi
+public class PosViterbi implements Runnable
 {
-	protected OnlineLabelModel model;
-	protected PosDic posDic;
-	protected Vector<String> allLabel;
+	protected static OnlineLabelModel model;
+	protected static PosDic posDic;
+	protected static Vector<String> allLabel;
+
+	//the three variables are use for Multi-Thread
+	private static InputStreams br;
+	private static OutputStreams wr;
+	private static int sentenceNum = 0;
 
 	public PosViterbi(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel)
 	{
-		this.model = model;
-		this.posDic = posDic;
-		this.allLabel = allLabel;
+		PosViterbi.model = model;
+		PosViterbi.posDic = posDic;
+		PosViterbi.allLabel = allLabel;
 	}
 
 	public PosViterbi()
@@ -65,7 +69,7 @@ public class PosViterbi
 					Vector<String> tmpLabel = new Vector<String>();
 					tmpLabel.add(pos);
 					PosInstance inst = new PosInstance(sentence, tmpLabel);
-					Vector<String> feature = inst.extractFeaturesFromInstance(0, posDic);
+					Vector<String> feature = inst.extractFeaturesFromInstanceInPosition(0, posDic);
 
 					String curLabel = "/curLabel=" + pos;
 					Vector<String> newFeat = new Vector<String>();
@@ -102,7 +106,7 @@ public class PosViterbi
 
 						PosInstance tmpInst = new PosInstance(sentence, preLabel);
 
-						Vector<String> featVec = tmpInst.extractFeaturesFromInstance(i, posDic);
+						Vector<String> featVec = tmpInst.extractFeaturesFromInstanceInPosition(i, posDic);
 
 						String curLabel = "/curLabel=" + newPos;
 						Vector<String> newFeat = new Vector<String>();
@@ -145,9 +149,11 @@ public class PosViterbi
 		return tmpMaxScore;
 	}
 
+
 	/**
-	 * POS for a segmented file each sentence is in a line
-	 * words are separated with blank space
+	 * POS for a segmented file 
+	 * each sentence is in a line words are separated with blank space
+	 * the function can use only one thread
 	 * 
 	 * @param testFile
 	 * @param resultFile
@@ -202,6 +208,47 @@ public class PosViterbi
 		logger.info("testing over!");
 		long endTime = System.currentTimeMillis();
 		logger.info("testing time: " + (endTime - startTime) / 1000 + " s" + "\n");
+	}
+
+	/**
+	 * POSTagger for a segmented file
+	 * each sentence is in a line words are separated with blank space
+	 * we can use Multi-Thread by setting threadNum
+	 * 
+	 * @param testFile
+	 * @param resultFile
+	 * @param threadNum
+	 *            thread number
+	 * @throws Exception
+	 */
+	public void PosForFile(final String testFile, final String resultFile, final int threadNum) throws Exception
+	{
+		br = new InputStreams(testFile);
+		wr = new OutputStreams(resultFile);
+
+		Logger logger = Logger.getLogger("pos");
+		logger.info("begin to test...");
+		if (model == null || br == null || null == wr)
+		{
+			logger.error("one of Model, br and wr is null,you should firstly train a model and the initialize br and wr");
+			throw new Exception("Model is null,you should firstly train a model");
+		}
+
+		long startTime = System.currentTimeMillis();
+
+		Thread[] threadVec = new Thread[threadNum];
+		for (int i = 0; i < threadNum; i++)
+		{
+			threadVec[i] = new Thread(new PosViterbi());
+			threadVec[i].start();
+		}
+
+		for (int i = 0; i < threadNum; i++)
+			threadVec[i].join();
+
+		logger.info("test finish!");
+		long endTime = System.currentTimeMillis();
+		logger.info("test time: " + (endTime - startTime) / 1000 + " s" + "\n");
 	}
 
 	/**
@@ -296,5 +343,44 @@ public class PosViterbi
 		logger.info("load resource over!");
 		long endTime = System.currentTimeMillis();
 		logger.info("loading source time: " + (endTime - startTime) / 1000 + " s\n");
+	}
+
+	@Override
+	public void run()
+	{
+		// TODO Auto-generated method stub
+		String line;
+		try
+		{
+			Logger logger = Logger.getLogger("pos");
+			while ((line = br.readLine()) != null)
+			{
+				sentenceNum++;
+
+				if (0 == sentenceNum % 300)
+					logger.info("sentence " + sentenceNum);
+				
+				if (line.trim().equals(""))
+					continue;
+				
+				String[] sentence = line.trim().split(" ");
+				Vector<String> words = new Vector<String>();
+				for (int i = 0; i < sentence.length; ++i)
+					words.add(sentence[i].trim());
+
+				Vector<String> result = new Vector<String>();
+
+				posViterbiDecode(words, result);
+				String resultStr = "";
+				for (int i = 0; i < words.size(); i++)
+					resultStr += words.elementAt(i) + "_" + result.elementAt(i) + " ";
+
+				wr.writerLine(resultStr.trim() + "\n");
+			}
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

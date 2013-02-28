@@ -6,7 +6,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 import ir.hit.edu.ltp.basic.PosInstance;
-import ir.hit.edu.ltp.basic.PosPipe;
+import ir.hit.edu.ltp.basic.Pipe;
 import ir.hit.edu.ltp.dic.PosDic;
 import ir.hit.edu.ltp.io.PosIO;
 import ir.hit.edu.ltp.model.FeatureMap;
@@ -52,12 +52,12 @@ public class PosAP extends PosViterbi
 		long startTime = System.currentTimeMillis();
 		allLabel = new Vector<String>();
 
-		logger.info("start get instances from triang file...");
+		logger.info("start to get instances from triang file...");
 		Vector<PosInstance> instanceList = PosIO.getPosInstanceFromNormalFile(trainingFile, allLabel);
 		logger.info("finish getting instances from traing file!");
 		logger.info("There are total " + instanceList.size() + " training instances!\n");
 
-		logger.info("start get POS dictionary from dictionary file...");
+		logger.info("start to get POS dictionary from dictionary file...");
 		posDic = new PosDic();
 		posDic.loadDic(dicFile);
 		logger.info("finish geting POS dictionary!");
@@ -67,8 +67,8 @@ public class PosAP extends PosViterbi
 		CharType.loadCharType();
 		logger.info("load char type over!\n");
 
-		Vector<PosPipe> posPipeList = new Vector<PosPipe>();
-		logger.info("start extract feature from training file...");
+		Vector<Pipe> posPipeList = new Vector<Pipe>();
+		logger.info("start to extract feature from training file...");
 		FeatureMap featMap = new FeatureMap(instanceList, allLabel, posDic, posPipeList);
 		logger.info("finishing extract feature from training file!\n");
 
@@ -129,9 +129,9 @@ public class PosAP extends PosViterbi
 					continue;
 
 				PosInstance preInstance = new PosInstance(sentence, predLabel);
-
+				
 				// get feature vector of predicted result
-				PosPipe predPipe = new PosPipe(preInstance, model.featMap.feature2Int, posDic);
+				Pipe predPipe = new Pipe(preInstance, model.featMap.feature2Int, posDic);
 
 				if (posPipeList.elementAt(inst).feature.size() != predPipe.feature.size())
 				{

@@ -1,14 +1,11 @@
 package ir.hit.edu.ltp.model;
 
-import java.util.Iterator;
 import java.util.Vector;
 import gnu.trove.*;
 
-import ir.hit.edu.ltp.basic.PosPipe;
+import ir.hit.edu.ltp.basic.Pipe;
 import ir.hit.edu.ltp.basic.SegInstance;
-import ir.hit.edu.ltp.basic.SegPipe;
 import ir.hit.edu.ltp.dic.PosDic;
-import ir.hit.edu.ltp.dic.SegDic;
 import ir.hit.edu.ltp.basic.PosInstance;
 
 /**
@@ -43,7 +40,7 @@ public class FeatureMap
 	 * @throws Exception
 	 */
 	public FeatureMap(Vector<PosInstance> instanceVec, Vector<String> allLabel, PosDic posDic,
-			Vector<PosPipe> posPipeVec) throws Exception
+			Vector<Pipe> posPipeVec) throws Exception
 	{
 		this.feature2Int = new TObjectIntHashMap();
 		this.label2Int = new TObjectIntHashMap();
@@ -75,17 +72,21 @@ public class FeatureMap
 
 		for (int i = 0; i < instanceVec.size(); ++i)
 		{
-			PosPipe tmpPosPipe = new PosPipe();
+			Pipe tmpPosPipe = new Pipe();
 
 			final PosInstance tmpInstance = instanceVec.elementAt(i);
-
+			
+			/**************/
+//			System.out.println("sentence " + i);
+			
+			
 			// writer.write("sentence: " + tmpInstance.words.toString() + "\n");
 			// writer.write("label   : " + tmpInstance.label.toString() + "\n");
 			for (int j = 0; j < tmpInstance.words.size(); j++)
 			{
 				tmpPosPipe.label.add(tmpInstance.label.elementAt(j));
 
-				Vector<String> featVec = tmpInstance.extractFeaturesFromInstance(j, posDic);
+				Vector<String> featVec = tmpInstance.extractFeaturesFromInstanceInPosition(j, posDic);
 
 				String word = tmpInstance.words.elementAt(j);
 
@@ -131,7 +132,7 @@ public class FeatureMap
 	}
 
 	@SuppressWarnings("unchecked")
-	public FeatureMap(Vector<SegInstance> instanceVec, Vector<String> allLabel, Vector<SegPipe> segPipeVec)
+	public FeatureMap(Vector<SegInstance> instanceVec, Vector<String> allLabel, Vector<Pipe> segPipeVec)
 			throws Exception
 	{
 		this.feature2Int = new TObjectIntHashMap();
@@ -164,7 +165,7 @@ public class FeatureMap
 		{
 			SegInstance inst = instanceVec.elementAt(i);
 
-			SegPipe tmpSegPipe = new SegPipe();
+			Pipe tmpSegPipe = new Pipe();
 
 			//			System.out.println(inst.sentence);
 			for (int j = 0; j < inst.sentence.size(); j++)

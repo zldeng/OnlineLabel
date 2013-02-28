@@ -144,6 +144,7 @@ public class SegInstance
 			for (int len = 1; i + len <= raw_sen.length() && len < MAX_LENGTH; len++)
 			{
 				String subStr = raw_sen.substring(i, i + len);
+				
 				if (segDic.containsKey(subStr) && (maxPre < len))
 				{
 					maxPre = len;

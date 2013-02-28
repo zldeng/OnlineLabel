@@ -8,9 +8,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.Vector;
-
-import org.apache.log4j.Logger;
 
 /**
  * class of online label model
@@ -119,9 +118,21 @@ public class OnlineLabelModel
 	public void writerModel(String modelFile) throws FileNotFoundException, UnsupportedEncodingException
 	{
 		FileOutputStream s = new FileOutputStream(modelFile);
-		OutputStreamWriter w = new OutputStreamWriter(s, "UTF-8");
-		PrintWriter wr = new PrintWriter(w);
+		PrintWriter wr = new PrintWriter(new OutputStreamWriter(s, "UTF-8"));
 
+		//get weight threshold, we use it to prune model
+//		Vector<Double> weight = new Vector<Double>();
+//		for (double w : parameter)
+//		{
+//			w = Math.abs(w);
+//			if (w < 1e-5)
+//				continue;
+//			else
+//				weight.add(w);
+//		}
+//		Collections.sort(weight);
+//		double threshold = weight.elementAt((int) (weight.size() * 0.5));
+		
 		wr.write("#label\n");
 		for (int i = 0; i < featMap.int2Label.size(); i++)
 			wr.write(featMap.int2Label.get(i) + " " + i + "\n");

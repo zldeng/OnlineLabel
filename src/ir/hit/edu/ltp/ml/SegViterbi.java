@@ -2,25 +2,23 @@ package ir.hit.edu.ltp.ml;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.nio.channels.WritableByteChannel;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
 import ir.hit.edu.ltp.basic.SegInstance;
 import ir.hit.edu.ltp.basic.SegItem;
-import ir.hit.edu.ltp.dic.PosDic;
 import ir.hit.edu.ltp.dic.SegDic;
 import ir.hit.edu.ltp.model.OnlineLabelModel;
 import ir.hit.edu.ltp.util.CharType;
 import ir.hit.edu.ltp.util.FullCharConverter;
+import ir.hit.edu.ltp.util.InputStreams;
+import ir.hit.edu.ltp.util.OutputStreams;
 
 /**
  * class for segment using Viterbi algorithm for decoding
@@ -28,17 +26,22 @@ import ir.hit.edu.ltp.util.FullCharConverter;
  * @author dzl
  * 
  */
-public class SegViterbi
+public class SegViterbi implements Runnable
 {
-	protected OnlineLabelModel model;
-	protected SegDic segDic;
-	protected Vector<String> allLabel;
+	protected static OnlineLabelModel model;
+	protected static SegDic segDic;
+	protected static Vector<String> allLabel;
 
+	//the three variables are use for Multi-Thread
+	private static InputStreams br;
+	private static OutputStreams wr;
+	private static int sentenceNum = 0;
+	
 	public SegViterbi(OnlineLabelModel model, SegDic segDic, Vector<String> allLabel)
 	{
-		this.model = model;
-		this.segDic = segDic;
-		this.allLabel = allLabel;
+		SegViterbi.model = model;
+		SegViterbi.segDic = segDic;
+		SegViterbi.allLabel = allLabel;
 	}
 
 	public SegViterbi()
@@ -168,6 +171,8 @@ public class SegViterbi
 	/**
 	 * segment for a file
 	 * one raw sentence in each line in the file
+	 * the function use only one thread
+	 * the function is old and we don't use it
 	 * 
 	 * @param testFile
 	 * @param resultFile
@@ -176,7 +181,7 @@ public class SegViterbi
 	public void segForFile(String testFile, String resultFile) throws Exception
 	{
 		Logger logger = Logger.getLogger("seg");
-		if (model == null)
+		if (model == null || null == segDic)
 		{
 			logger.error("Model is null,you should firstly train a model");
 			throw new Exception("Model is null,you should firstly train a model");
@@ -216,6 +221,46 @@ public class SegViterbi
 		long endTime = System.currentTimeMillis();
 		logger.info("testing time: " + (endTime - startTime) / 1000 + " s" + "\n");
 
+	}
+	
+	/**
+	 * segment for a file
+	 * one raw sentence in each line in the file
+	 * 
+	 * @param testFile
+	 * @param resultFile
+	 * @param threadNum thread number
+	 * @throws Exception
+	 */
+	public void segForFile(final String testFile, final String resultFile,final int threadNum) throws Exception
+	{
+		br = new InputStreams(testFile);
+		wr = new OutputStreams(resultFile);
+
+		Logger logger = Logger.getLogger("seg");
+		logger.info("begin to test...");
+		if (model == null || br == null || null == wr)
+		{
+			logger.error("one of Model, br and wr is null,you should firstly train a model and the initialize br and wr");
+			throw new Exception("Model is null,you should firstly train a model");
+		}
+
+		long startTime = System.currentTimeMillis();
+		
+
+		Thread[] threadVec = new Thread[threadNum];
+		for (int i = 0; i < threadNum; i++)
+		{
+			threadVec[i] = new Thread(new SegViterbi());
+			threadVec[i].start();
+		}
+
+		for (int i = 0; i < threadNum; i++)
+			threadVec[i].join();
+		
+		logger.info("test finish!");
+		long endTime = System.currentTimeMillis();
+		logger.info("test time: " + (endTime - startTime) / 1000 + " s" + "\n");
 	}
 
 	/**
@@ -359,5 +404,42 @@ public class SegViterbi
 		logger.info("load resource over!");
 		long endTime = System.currentTimeMillis();
 		logger.info("loading source time: " + (endTime - startTime) / 1000 + " s\n");
+	}
+
+	@Override
+	public void run()
+	{
+		// TODO Auto-generated method stub
+		String raw_sen;
+		
+		try
+		{
+			Logger logger = Logger.getLogger("seg");
+			while ((raw_sen = br.readLine()) != null)
+			{
+				sentenceNum++;
+				if (0 == sentenceNum % 300)
+					logger.info("sentence " + sentenceNum);
+				if (raw_sen.trim().equals(""))
+					continue;
+				
+				Vector<String> resultVec = new Vector<String>();
+				segViterbiDecode(raw_sen.trim(), resultVec);
+
+				String result = "";
+				for (String str : resultVec)
+					result += str + " ";
+				
+				wr.writerLine(result.trim() + "\n");			
+			}
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

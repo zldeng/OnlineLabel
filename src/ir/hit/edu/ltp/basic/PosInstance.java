@@ -38,7 +38,7 @@ public class PosInstance
 	 * @return feature vector which contains all features in position of the
 	 *         words
 	 */
-	Vector<String> extractBasicFeatures(int position)
+	private Vector<String> extractBasicFeatures(int position)
 	{
 		Vector<String> featVec = new Vector<String>();
 		String pre2Word;
@@ -54,6 +54,8 @@ public class PosInstance
 			preWord = "_BEGIN_";
 
 		String curWord = words.elementAt(position);
+//		/*******/
+//		System.out.println("cur: " + curWord);
 		String nextWord;
 		if (position <= words.size() - 2)
 			nextWord = words.elementAt(position + 1);
@@ -197,7 +199,7 @@ public class PosInstance
 	 * @param posDic
 	 * @return
 	 */
-	public Vector<String> extractFeaturesFromInstance(int position, PosDic posDic)
+	public Vector<String> extractFeaturesFromInstanceInPosition(int position, PosDic posDic)
 	{
 		Vector<String> featVec = extractBasicFeatures(position);
 

@@ -16,7 +16,7 @@ public class ParaOption
 {
 	CommandLine cmd;
 	public String trainFile, devFile, testFile, dicFile, resultFile, modelFile;
-	public int iterator;
+	public int iterator,threadNum;
 	public boolean train = false, test = false;
 
 	public ParaOption(String[] args) throws ParseException
@@ -32,7 +32,7 @@ public class ParaOption
 		option.addOption("devFile", true, "dev file");
 		option.addOption("testFile", true, "test file");
 		option.addOption("result", true, "result file");
-
+		option.addOption("thread",true,"thread number,just use in testing");
 		CommandLineParser parser = new PosixParser();
 		cmd = parser.parse(option, args);
 	}
@@ -83,6 +83,12 @@ public class ParaOption
 			dicFile = cmd.getOptionValue("dicFile");
 			testFile = cmd.getOptionValue("testFile");
 			resultFile = cmd.getOptionValue("result");
+			
+			if (cmd.hasOption("thread"))
+				threadNum = Integer.parseInt(cmd.getOptionValue("thread"));
+			else
+				threadNum = 1;
+			
 
 			//			logger.info("Model file: " + modelFile);
 			//			logger.info("Dictionary file: " + dicFile);
