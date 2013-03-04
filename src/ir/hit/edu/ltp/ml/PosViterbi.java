@@ -25,9 +25,9 @@ import ir.hit.edu.ltp.util.OutputStreams;
  */
 public class PosViterbi implements Runnable
 {
-	protected static OnlineLabelModel model;
-	protected static PosDic posDic;
-	protected static Vector<String> allLabel;
+	protected  OnlineLabelModel model;
+	protected  PosDic posDic;
+	protected  Vector<String> allLabel;
 
 	//the three variables are use for Multi-Thread
 	private static InputStreams br;
@@ -36,9 +36,9 @@ public class PosViterbi implements Runnable
 
 	public PosViterbi(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel)
 	{
-		PosViterbi.model = model;
-		PosViterbi.posDic = posDic;
-		PosViterbi.allLabel = allLabel;
+		this.model = model;
+		this.posDic = posDic;
+		this.allLabel = allLabel;
 	}
 
 	public PosViterbi()
@@ -239,7 +239,7 @@ public class PosViterbi implements Runnable
 		Thread[] threadVec = new Thread[threadNum];
 		for (int i = 0; i < threadNum; i++)
 		{
-			threadVec[i] = new Thread(new PosViterbi());
+			threadVec[i] = new Thread(new PosViterbi(model,posDic,allLabel));
 			threadVec[i].start();
 		}
 

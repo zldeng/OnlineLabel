@@ -28,9 +28,9 @@ import ir.hit.edu.ltp.util.OutputStreams;
  */
 public class SegViterbi implements Runnable
 {
-	protected static OnlineLabelModel model;
-	protected static SegDic segDic;
-	protected static Vector<String> allLabel;
+	protected OnlineLabelModel model;
+	protected SegDic segDic;
+	protected Vector<String> allLabel;
 
 	//the three variables are use for Multi-Thread
 	private static InputStreams br;
@@ -39,9 +39,9 @@ public class SegViterbi implements Runnable
 	
 	public SegViterbi(OnlineLabelModel model, SegDic segDic, Vector<String> allLabel)
 	{
-		SegViterbi.model = model;
-		SegViterbi.segDic = segDic;
-		SegViterbi.allLabel = allLabel;
+		this.model = model;
+		this.segDic = segDic;
+		this.allLabel = allLabel;
 	}
 
 	public SegViterbi()
@@ -251,7 +251,7 @@ public class SegViterbi implements Runnable
 		Thread[] threadVec = new Thread[threadNum];
 		for (int i = 0; i < threadNum; i++)
 		{
-			threadVec[i] = new Thread(new SegViterbi());
+			threadVec[i] = new Thread(new SegViterbi(model,segDic,allLabel));
 			threadVec[i].start();
 		}
 
