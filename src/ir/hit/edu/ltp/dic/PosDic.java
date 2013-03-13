@@ -65,12 +65,22 @@ public class PosDic
 				continue;
 			String[] token = line.trim().split(" ");
 			if (word2Pos.containsKey(token[0]))
-				continue;
-			Vector<String> posVec = new Vector<String>();
-			for (int i = 1; i < token.length; i++)
-				posVec.add(token[i]);
+			{
+				Vector<String> tmpPos = word2Pos.get(token[0]);
+				for (int i = 1;i < token.length;i++)
+					if (!tmpPos.contains(token[i]))
+						tmpPos.add(token[i]);
+				word2Pos.put(token[0], tmpPos);
+			}
+			else
+			{
+				Vector<String> posVec = new Vector<String>();
+				for (int i = 1; i < token.length; i++)
+					posVec.add(token[i]);
 
-			word2Pos.put(token[0], posVec);
+				word2Pos.put(token[0], posVec);
+			}
+			
 		}
 	}
 }

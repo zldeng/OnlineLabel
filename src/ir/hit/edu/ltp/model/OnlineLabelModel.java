@@ -1,5 +1,7 @@
 package ir.hit.edu.ltp.model;
 
+import gnu.trove.TObjectIntHashMap;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -112,26 +114,34 @@ public class OnlineLabelModel
 	 * just discard them and this can decrease model size significantly
 	 * 
 	 * @param modelFile
-	 * @throws FileNotFoundException
-	 * @throws UnsupportedEncodingException
+	 * @throws Exception
 	 */
-	public void writerModel(String modelFile) throws FileNotFoundException, UnsupportedEncodingException
+	public void writerModel(String modelFile, final double ratio) throws Exception
 	{
+		if (ratio < 0 || ratio >= 1)
+		{
+			throw new Exception("the Rompression ratio should more than 0 and less than 1");
+		}
+
 		FileOutputStream s = new FileOutputStream(modelFile);
 		PrintWriter wr = new PrintWriter(new OutputStreamWriter(s, "UTF-8"));
 
-		//get weight threshold, we use it to prune model
-//		Vector<Double> weight = new Vector<Double>();
-//		for (double w : parameter)
-//		{
-//			w = Math.abs(w);
-//			if (w < 1e-5)
-//				continue;
-//			else
-//				weight.add(w);
-//		}
-//		Collections.sort(weight);
-//		double threshold = weight.elementAt((int) (weight.size() * 0.5));
+		double threshold = 1e-4;
+		if (ratio > 0)
+		{
+			//get weight threshold, we use it to compress model
+			Vector<Double> weight = new Vector<Double>();
+			for (double w : parameter)
+			{
+				w = Math.abs(w);
+				if (w < 1e-4)
+					continue;
+				else
+					weight.add(w);
+			}
+			Collections.sort(weight);
+			threshold = weight.elementAt((int) (weight.size() * ratio));
+		}
 		
 		wr.write("#label\n");
 		for (int i = 0; i < featMap.int2Label.size(); i++)
@@ -144,7 +154,7 @@ public class OnlineLabelModel
 		for (int i = 0; i < feats.length; i++)
 		{
 			int id = featMap.feature2Int.get(feats[i]);
-			if (Math.abs(parameter[id]) < 1e-5)
+			if (Math.abs(parameter[id]) < threshold)
 				continue;
 			wr.write(feats[i] + " " + num + " " + parameter[id] + "\n");
 			num++;

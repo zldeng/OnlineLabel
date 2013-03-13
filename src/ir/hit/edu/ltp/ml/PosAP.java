@@ -43,7 +43,7 @@ public class PosAP extends PosViterbi
 	 * @param devFile
 	 * @throws Exception
 	 */
-	public void PosAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile)
+	public void PosAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile,final double compressRatio)
 			throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
@@ -153,16 +153,27 @@ public class PosAP extends PosViterbi
 			for (int i = 0; i < featMap.feature2Int.size(); i++)
 			{
 				tmpModel.parameter[i] = total[i] / (instanceList.size() * (it + 1));
-			}
+			}		
+			
 			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel);
-
+			
 			// evaluate current model with dev file
-			logger.info("Evaluate model for dev file...");
+			logger.info("Evaluate model for dev file with uncompressed model...");
 			double devPre = tmpPosTagger.evalPos(devFile, it);
-			logger.info("the model POS precision for dev file is: " + devPre + "\n");
-
+			logger.info("the POS precision of uncompressed model for dev file is: " + devPre + "\n");
+			
 			logger.info("writer model to file...\n");
-			tmpModel.writerModel(modelFile + "-it-" + it);
+			tmpModel.writerModel(modelFile + "-it-" + it,compressRatio);
+			
+			if (compressRatio > 0)
+			{
+				OnlineLabelModel compressedModel = OnlineLabelModel.loadModel(modelFile + "-it-" + it);
+				tmpPosTagger = new PosAP(compressedModel, posDic, allLabel);
+				logger.info("Evaluate compressed model for dev file with compressed model...");
+				devPre = tmpPosTagger.evalPos(devFile, it);
+				logger.info("the POS precision of compressed model for dev file is: " + devPre + "\n");
+			}
+			
 		}
 
 		logger.info("train over!");

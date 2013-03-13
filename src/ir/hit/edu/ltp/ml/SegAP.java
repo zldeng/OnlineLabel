@@ -25,7 +25,7 @@ public class SegAP extends SegViterbi
 
 	}
 
-	public void segAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile)
+	public void segAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile,final double compressRatio)
 			throws Exception
 	{
 		Logger logger = Logger.getLogger("seg");
@@ -142,15 +142,28 @@ public class SegAP extends SegViterbi
 
 			SegAP tmpSeg = new SegAP(tmpModel, segDic, allLabel);
 
-			logger.info("evaluate model with dev file...");
+			logger.info("evaluate uncompressed model with dev file...");
 			double[] performance = tmpSeg.evalSeg(devFile, it);
 			double precision = performance[0];
 			double recall = performance[1];
-			logger.info("evaluation result P: " + precision + " R: " + recall + " F: " + (2 * precision * recall)
+			logger.info("the evaluation result of uncompressed P: " + precision + " R: " + recall + " F: " + (2 * precision * recall)
 					/ (precision + recall) + "\n");
 
 			logger.info("writer model to file...\n");
-			tmpSeg.model.writerModel(modelFile + "-it-" + it);
+			tmpSeg.model.writerModel(modelFile + "-it-" + it,compressRatio);
+			
+			if (compressRatio > 0)
+			{
+				OnlineLabelModel compressedModel = OnlineLabelModel.loadModel(modelFile + "-it-" + it);
+				tmpSeg = new SegAP(compressedModel, segDic, allLabel);
+				logger.info("evaluate compressed model with dev file...");
+				performance = tmpSeg.evalSeg(devFile, it);
+				precision = performance[0];
+				recall = performance[1];
+				logger.info("the evaluation result of conpressed model P: " + precision + " R: " + recall + " F: " + (2 * precision * recall)
+						/ (precision + recall) + "\n");
+			}
+			
 		}
 
 		logger.info("training over!");

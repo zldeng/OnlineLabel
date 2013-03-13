@@ -20,7 +20,7 @@ public class FeatureMap
 	public TObjectIntHashMap feature2Int;
 	public TObjectIntHashMap label2Int;
 	public TIntObjectHashMap int2Label;
-
+	
 	public FeatureMap(TObjectIntHashMap feature2Int, TObjectIntHashMap label2Int, TIntObjectHashMap int2Label)
 	{
 		this.feature2Int = feature2Int;
@@ -91,7 +91,7 @@ public class FeatureMap
 				String word = tmpInstance.words.elementAt(j);
 
 				// create feature space
-				// when the word appears in dictionary,
+				// when the word appears in dictionary
 				// just use the candidate POS
 				Vector<String> cadidatePos = posDic.containsKey(word) ? posDic.getPos(word) : allLabel;
 				for (int w = 0; w < cadidatePos.size(); w++)

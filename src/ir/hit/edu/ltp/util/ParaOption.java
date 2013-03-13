@@ -18,6 +18,7 @@ public class ParaOption
 	public String trainFile, devFile, testFile, dicFile, resultFile, modelFile;
 	public int iterator,threadNum;
 	public boolean train = false, test = false;
+	public double compressRatio = 0;
 
 	public ParaOption(String[] args) throws ParseException
 	{
@@ -33,6 +34,7 @@ public class ParaOption
 		option.addOption("testFile", true, "test file");
 		option.addOption("result", true, "result file");
 		option.addOption("thread",true,"thread number,just use in testing");
+		option.addOption("compress",true,"the ratio of compress model,which is the proportion of features you want to remove");
 		CommandLineParser parser = new PosixParser();
 		cmd = parser.parse(option, args);
 	}
@@ -63,6 +65,11 @@ public class ParaOption
 			dicFile = cmd.getOptionValue("dicFile");
 			devFile = cmd.getOptionValue("devFile");
 			iterator = Integer.parseInt(cmd.getOptionValue("iterator"));
+			
+			if (cmd.hasOption("compress"))
+				compressRatio = Double.parseDouble(cmd.getOptionValue("compress"));
+			else
+				compressRatio = 0;
 
 			//			logger.info("Training file: " + trainFile);
 			//			logger.info("Dev file: " + devFile);
