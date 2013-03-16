@@ -21,6 +21,9 @@ import ir.hit.edu.ltp.util.CharType;
  */
 public class PosAP extends PosViterbi
 {
+	private Vector<PosInstance> instanceList;
+	private Vector<Pipe> posPipeList;
+	
 	public PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel)
 	{
 		super(model, posDic, allLabel);
@@ -43,46 +46,24 @@ public class PosAP extends PosViterbi
 	 * @param devFile
 	 * @throws Exception
 	 */
-	public void PosAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile,final double compressRatio)
+	public void PosAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile, final double compressRatio)
 			throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
 
 		logger.info("Start to train....");
 		long startTime = System.currentTimeMillis();
-		allLabel = new Vector<String>();
+		
+		//load training instance and transform them to PosInstance, then initialize dictionary, model
+		loadInstanceAndInit(trainingFile, dicFile);
 
-		logger.info("start to get instances from triang file...");
-		Vector<PosInstance> instanceList = PosIO.getPosInstanceFromNormalFile(trainingFile, allLabel);
-		logger.info("finish getting instances from traing file!");
-		logger.info("There are total " + instanceList.size() + " training instances!\n");
-
-		logger.info("start to get POS dictionary from dictionary file...");
-		posDic = new PosDic();
-		posDic.loadDic(dicFile);
-		logger.info("finish geting POS dictionary!");
-		logger.info("There are total " + posDic.size() + " POS pairs in POS dictionary\n");
-
-		logger.info("load char type...");
-		CharType.loadCharType();
-		logger.info("load char type over!\n");
-
-		Vector<Pipe> posPipeList = new Vector<Pipe>();
-		logger.info("start to extract feature from training file...");
-		FeatureMap featMap = new FeatureMap(instanceList, allLabel, posDic, posPipeList);
-		logger.info("finishing extract feature from training file!\n");
-
-		logger.info("There are total " + featMap.feature2Int.size() + " features!");
-		logger.info("There are total " + featMap.label2Int.size() + " labels!\n");
-
-		model = new OnlineLabelModel(featMap);
 		ArrayList<Integer> intList = new ArrayList<Integer>();
 		for (int p = 0; p < instanceList.size(); p++)
 		{
 			intList.add(p);
 		}
 
-		double[] total = new double[featMap.feature2Int.size()];
+		double[] total = new double[model.featMap.feature2Int.size()];
 		for (int i = 0; i < total.length; i++)
 			total[i] = 0;
 
@@ -129,7 +110,7 @@ public class PosAP extends PosViterbi
 					continue;
 
 				PosInstance preInstance = new PosInstance(sentence, predLabel);
-				
+
 				// get feature vector of predicted result
 				Pipe predPipe = new Pipe(preInstance, model.featMap.feature2Int, posDic);
 
@@ -149,22 +130,22 @@ public class PosAP extends PosViterbi
 			// output model in each iterator
 			// user can get the best model according the evaluation result
 			// get current model
-			OnlineLabelModel tmpModel = new OnlineLabelModel(featMap);
-			for (int i = 0; i < featMap.feature2Int.size(); i++)
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap);
+			for (int i = 0; i < model.featMap.feature2Int.size(); i++)
 			{
 				tmpModel.parameter[i] = total[i] / (instanceList.size() * (it + 1));
-			}		
-			
+			}
+
 			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel);
-			
+
 			// evaluate current model with dev file
 			logger.info("Evaluate model for dev file with uncompressed model...");
 			double devPre = tmpPosTagger.evalPos(devFile, it);
 			logger.info("the POS precision of uncompressed model for dev file is: " + devPre + "\n");
-			
+
 			logger.info("writer model to file...\n");
-			tmpModel.writerModel(modelFile + "-it-" + it,compressRatio);
-			
+			tmpModel.writerModel(modelFile + "-it-" + it, compressRatio);
+
 			if (compressRatio > 0)
 			{
 				OnlineLabelModel compressedModel = OnlineLabelModel.loadModel(modelFile + "-it-" + it);
@@ -173,12 +154,52 @@ public class PosAP extends PosViterbi
 				devPre = tmpPosTagger.evalPos(devFile, it);
 				logger.info("the POS precision of compressed model for dev file is: " + devPre + "\n");
 			}
-			
+
 		}
 
 		logger.info("train over!");
 		long endTime = System.currentTimeMillis();
 
 		logger.info("training time: " + (endTime - startTime) / 1000 + " s" + "\n");
+	}
+
+	private void loadInstanceAndInit(final String trainingFile, final String dicFile) throws Exception
+	{
+		Logger logger = Logger.getLogger("pos");
+
+		logger.info("Start to load training instance and initialize model...");
+
+		instanceList = new Vector<PosInstance>();
+		posPipeList = new Vector<Pipe>();
+
+		allLabel = new Vector<String>();
+
+		logger.info("start to get instances from triang file...");
+		instanceList = PosIO.getPosInstanceFromNormalFile(trainingFile, allLabel);
+		logger.info("finish getting instances from traing file!");
+		logger.info("There are total " + instanceList.size() + " training instances!\n");
+
+		logger.info("start to get POS dictionary from dictionary file...");
+		posDic = new PosDic();
+		posDic.loadDic(dicFile);
+		logger.info("finish geting POS dictionary!");
+		logger.info("There are total " + posDic.size() + " POS pairs in POS dictionary\n");
+
+		logger.info("load char type...");
+		CharType.loadCharType();
+		logger.info("load char type over!\n");
+
+		posPipeList = new Vector<Pipe>();
+		logger.info("start to extract feature from training file...");
+		FeatureMap featMap = new FeatureMap(instanceList, allLabel, posDic, posPipeList);
+		logger.info("finishing extract feature from training file!\n");
+
+		logger.info("There are total " + featMap.feature2Int.size() + " features!");
+		logger.info("There are total " + featMap.label2Int.size() + " labels!\n");
+
+		model = new OnlineLabelModel(featMap);
+
+		logger.info("load instance and initialize model over!");
+
 	}
 }

@@ -1,8 +1,11 @@
 package ir.hit.edu.ltp.ml;
 
+import ir.hit.edu.ltp.basic.PosInstance;
 import ir.hit.edu.ltp.basic.SegInstance;
 import ir.hit.edu.ltp.basic.Pipe;
+import ir.hit.edu.ltp.dic.PosDic;
 import ir.hit.edu.ltp.dic.SegDic;
+import ir.hit.edu.ltp.io.PosIO;
 import ir.hit.edu.ltp.io.SegIO;
 import ir.hit.edu.ltp.model.FeatureMap;
 import ir.hit.edu.ltp.model.OnlineLabelModel;
@@ -15,6 +18,9 @@ import org.apache.log4j.Logger;
 
 public class SegAP extends SegViterbi
 {
+	Vector<SegInstance> instList;
+	Vector<Pipe> segPipeList;
+	
 	public SegAP(OnlineLabelModel model, SegDic segDic, Vector<String> allLabel)
 	{
 		super(model, segDic, allLabel);
@@ -25,42 +31,16 @@ public class SegAP extends SegViterbi
 
 	}
 
+	@SuppressWarnings("unchecked")
 	public void segAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile,final double compressRatio)
 			throws Exception
 	{
 		Logger logger = Logger.getLogger("seg");
-
+		logger.info("training start...");
 		long startTime = System.currentTimeMillis();
-		logger.info("start to get seg dictionary from dictionary file...");
-
-		segDic = new SegDic();
-		segDic.loadSegDic(dicFile);
-
-		logger.info("finish geting seg dictionary!");
-		logger.info("There are total " + segDic.size() + " words in segmentation dictionary\n");
-
-		logger.info("load char type...");
-		CharType.loadCharType();
-		logger.info("load char type over!\n");
-
-		allLabel = new Vector<String>();
-		allLabel.add("B");
-		allLabel.add("M");
-		allLabel.add("E");
-		allLabel.add("S");
-
-		logger.info("load instance from training file...");
-		Vector<SegInstance> instList = SegIO.getSegInstanceFromNormalFile(trainingFile, segDic);
-		logger.info("instance number: " + instList.size());
-
-		Vector<Pipe> segPipeList = new Vector<Pipe>();
-		logger.info("extract features from instance and map SegInstance to SegPipe...");
-		FeatureMap featMap = new FeatureMap(instList, allLabel, segPipeList);
-		logger.info("there are total " + featMap.feature2Int.size() + " features");
-		logger.info("there are total " + featMap.label2Int.size() + " labels\n");
-
-		model = new OnlineLabelModel(featMap);
-
+	
+		loadInstanceAndInit(trainingFile, dicFile);
+		
 		ArrayList<Integer> intList = new ArrayList<Integer>();
 		for (int p = 0; p < instList.size(); p++)
 		{
@@ -119,8 +99,6 @@ public class SegAP extends SegViterbi
 
 				Pipe predPipe = new Pipe(predInstance, model.featMap.feature2Int);
 
-				//				System.out.println("segList: " + segPipeList.size());
-
 				if (predPipe.feature.size() != segPipeList.elementAt(inst).feature.size())
 				{
 					throw new Exception(
@@ -134,7 +112,7 @@ public class SegAP extends SegViterbi
 
 			logger.info("finish iterator " + it + "\n");
 
-			OnlineLabelModel tmpModel = new OnlineLabelModel(featMap);
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap);
 			for (int i = 0; i < tmpModel.parameter.length; i++)
 			{
 				tmpModel.parameter[i] = total[i] / (instList.size() * (it + 1));
@@ -170,6 +148,44 @@ public class SegAP extends SegViterbi
 		long endTime = System.currentTimeMillis();
 
 		logger.info("training time: " + (endTime - startTime) / 1000 + " s" + "\n");
+
+	}
+	
+	private void loadInstanceAndInit(final String trainingFile, final String dicFile) throws Exception
+	{
+		Logger logger = Logger.getLogger("seg");
+
+		logger.info("Start to load training instance and initialize model...");
+
+		logger.info("start to get seg dictionary from dictionary file...");
+		segDic = new SegDic();
+		segDic.loadSegDic(dicFile);
+
+		logger.info("finish geting seg dictionary!");
+		logger.info("There are total " + segDic.size() + " words in segmentation dictionary\n");
+
+		logger.info("load char type...");
+		CharType.loadCharType();
+		logger.info("load char type over!\n");
+
+		allLabel = new Vector<String>();
+		allLabel.add("B");
+		allLabel.add("M");
+		allLabel.add("E");
+		allLabel.add("S");
+
+		logger.info("load instance from training file...");
+		instList = SegIO.getSegInstanceFromNormalFile(trainingFile, segDic);
+		logger.info("instance number: " + instList.size());
+
+		segPipeList = new Vector<Pipe>();
+		logger.info("extract features from instance and map SegInstance to SegPipe...");
+		FeatureMap featMap = new FeatureMap(instList, allLabel, segPipeList);
+		logger.info("there are total " + featMap.feature2Int.size() + " features");
+		logger.info("there are total " + featMap.label2Int.size() + " labels\n");
+
+		model = new OnlineLabelModel(featMap);
+		logger.info("load instance and initialize model over!");
 
 	}
 }

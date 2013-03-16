@@ -6,7 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
-
+//in this class, we must use synchronized to avoid different threads read
+//content from the input stream at the same time
 public class InputStreams
 {
 	private BufferedReader br ;
