@@ -19,7 +19,7 @@ public class OnlinePos
 		Logger logger = Logger.getLogger("pos");
 
 		logger.info("\n\n\n*********** welcome ******************\n");
-		
+
 		ParaOption option = new ParaOption(args);
 
 		if (!option.checkParameter())
@@ -34,11 +34,13 @@ public class OnlinePos
 			logger.info("Dictionary file: " + option.dicFile);
 			logger.info("Model file: " + option.modelFile);
 			logger.info("Iterator number: " + option.iterator);
+			logger.info("thread number: " + option.threadNum);
 			logger.info("compress retio: " + option.compressRatio + "\n");
-			
+
 			logger.info("training start....\n");
 			PosAP posTagger = new PosAP();
-			posTagger.PosAPTrain(option.trainFile, option.modelFile, option.dicFile, option.iterator, option.devFile,option.compressRatio);
+			posTagger.PosAPTrain(option.trainFile, option.modelFile, option.dicFile, option.iterator, option.devFile,
+					option.compressRatio, option.threadNum);
 		}
 		else if (option.test)
 		{
@@ -59,7 +61,7 @@ public class OnlinePos
 	{
 		Logger logger = Logger.getLogger("pos");
 		logger.info("Usag:");
-		logger.info("train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlinePos -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file");
-		logger.info("test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlinePos -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum [opt]-compress compressRetio\n");
+		logger.info("train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlinePos -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum");
+		logger.info("test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlinePos -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum \n");
 	}
 }

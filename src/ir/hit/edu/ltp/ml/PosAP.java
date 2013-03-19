@@ -2,6 +2,11 @@ package ir.hit.edu.ltp.ml;
 
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
@@ -12,6 +17,7 @@ import ir.hit.edu.ltp.io.PosIO;
 import ir.hit.edu.ltp.model.FeatureMap;
 import ir.hit.edu.ltp.model.OnlineLabelModel;
 import ir.hit.edu.ltp.util.CharType;
+import ir.hit.edu.ltp.util.MyTools;
 
 /**
  * a class for training POS model using Average Perceptron
@@ -19,11 +25,14 @@ import ir.hit.edu.ltp.util.CharType;
  * @author dzl
  * 
  */
-public class PosAP extends PosViterbi
+public class PosAP extends PosViterbi implements Callable<double[]>
 {
 	private Vector<PosInstance> instanceList;
 	private Vector<Pipe> posPipeList;
-	
+	private static int threadNum;
+	private int id;
+	private CountDownLatch finishSigle;
+
 	public PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel)
 	{
 		super(model, posDic, allLabel);
@@ -34,10 +43,42 @@ public class PosAP extends PosViterbi
 
 	}
 
+	public PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel, int id,
+			Vector<PosInstance> instanceList, Vector<Pipe> posPipeList, CountDownLatch finishSigle)
+	{
+		this.model = new OnlineLabelModel(model.featMap);
+		for (int i = 0; i < model.parameter.length; i++)
+			this.model.parameter[i] = model.parameter[i];
+
+		this.posDic = posDic;
+		this.allLabel = allLabel;
+		this.instanceList = instanceList;
+		this.posPipeList = posPipeList;
+		this.id = id;
+		this.finishSigle = finishSigle;
+	}
+
+	//if the thread number is only one,just use old training function. we can save some time by avoiding managing thread
+	//if the thread number is more than one, then use another training function
+	public void PosAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile, final double compressRatio, final int threadNum)
+			throws Exception
+	{
+		if (threadNum <= 0)
+		{
+			throw new Exception("thread number must be a int value and it must be more than 0");
+		}
+
+		if (1 == threadNum)
+			PosAPTrainWithOneThread(trainingFile, modelFile, dicFile, iterator, devFile, compressRatio);
+		else
+			PosAPTrainWithMultiThreads(trainingFile, modelFile, dicFile, iterator, devFile, compressRatio, threadNum);
+
+	}
+
 	/**
-	 * train a model using Average Perceptron
-	 * In each iterator, evaluate the model with dev file and writer the model
-	 * to a file
+	 * train a model using Average Perceptron in one thread
+	 * In each iterator, evaluate the model with development file and writer the
+	 * model to a file
 	 * 
 	 * @param trainingFile
 	 * @param modelFile
@@ -46,14 +87,14 @@ public class PosAP extends PosViterbi
 	 * @param devFile
 	 * @throws Exception
 	 */
-	public void PosAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile, final double compressRatio)
+	private void PosAPTrainWithOneThread(String trainingFile, String modelFile, String dicFile, int iterator, String devFile, final double compressRatio)
 			throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
 
 		logger.info("Start to train....");
 		long startTime = System.currentTimeMillis();
-		
+
 		//load training instance and transform them to PosInstance, then initialize dictionary, model
 		loadInstanceAndInit(trainingFile, dicFile);
 
@@ -63,9 +104,8 @@ public class PosAP extends PosViterbi
 			intList.add(p);
 		}
 
+		//the variable is used to keep each model
 		double[] total = new double[model.featMap.feature2Int.size()];
-		for (int i = 0; i < total.length; i++)
-			total[i] = 0;
 
 		for (int it = 0; it < iterator; ++it)
 		{
@@ -200,6 +240,153 @@ public class PosAP extends PosViterbi
 		model = new OnlineLabelModel(featMap);
 
 		logger.info("load instance and initialize model over!");
+	}
 
+	/**
+	 * training model using Structure Perceptron in Multiple threads
+	 * when using multiple threads, just use Structure Perceptron
+	 * 
+	 * @param trainingFile
+	 * @param modelFile
+	 * @param dicFile
+	 * @param iterator
+	 * @param devFile
+	 * @param compressRatio
+	 * @param threadNum
+	 * @throws Exception
+	 */
+	private void PosAPTrainWithMultiThreads(String trainingFile, String modelFile, String dicFile, int iterator, String devFile, final double compressRatio, final int threadNum)
+			throws Exception
+	{
+		Logger logger = Logger.getLogger("pos");
+
+		logger.info("Start to train....");
+		long startTime = System.currentTimeMillis();
+		//load training instance and transform them to PosInstance, then initialize dictionary, allLabel and model
+		loadInstanceAndInit(trainingFile, dicFile);
+
+		//set thread number, this is a static variable
+		PosAP.threadNum = threadNum;
+		logger.info("each thread almost uses " + instanceList.size() / threadNum + " training instances");
+
+		for (int it = 0; it < iterator; it++)
+		{
+			logger.info("start iterator " + it + " ...");
+
+			ExecutorService exec = Executors.newCachedThreadPool();
+			ArrayList<Future<double[]>> results = new ArrayList<Future<double[]>>();
+
+			CountDownLatch finishSigle = new CountDownLatch(threadNum);
+			//create threaNum threads and submit them
+			for (int id = 0; id < threadNum; id++)
+			{
+				//because the PosAP extends from PosViterbi and PosViterbi has implemented Runnable interface
+				//in ExecutorService, there are two submit methods, one uses a Runnable task as parameter and another uses a Callable task as parameter
+				//so we must use a cast to tell submit that we want use the submit which use a Callable parameter
+				results.add(exec.submit((Callable<double[]>) new PosAP(model, posDic, allLabel, id, instanceList,
+						posPipeList, finishSigle)));
+			}
+
+			//wait until all sub-thread are finished
+			finishSigle.await();
+			logger.info("sub-threads are all finished!");
+			logger.info("merge parameter...");
+			Vector<double[]> paraVec = new Vector<double[]>();
+
+			for (Future<double[]> fs : results)
+			{
+				paraVec.add(fs.get());
+			}
+			double[] tmpPara = MyTools.mixParameter(paraVec);
+			logger.info("merge parameter over!");
+
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara);
+			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel);
+
+			// evaluate current model with development file
+			logger.info("Evaluate model for dev file with uncompressed model...");
+			double devPre = tmpPosTagger.evalPos(devFile, it);
+			logger.info("the POS precision of uncompressed model for dev file is: " + devPre + "\n");
+
+			logger.info("writer model to file...\n");
+			tmpModel.writerModel(modelFile + "-it-" + it, compressRatio);
+
+			if (compressRatio > 0)
+			{
+				OnlineLabelModel compressedModel = OnlineLabelModel.loadModel(modelFile + "-it-" + it);
+				tmpPosTagger = new PosAP(compressedModel, posDic, allLabel);
+				logger.info("Evaluate compressed model for dev file with compressed model...");
+				devPre = tmpPosTagger.evalPos(devFile, it);
+				logger.info("the POS precision of compressed model for dev file is: " + devPre + "\n");
+			}
+
+			model.parameter = tmpPara;
+			logger.info("iterator " + it + " over!");
+		}
+
+		long endTime = System.currentTimeMillis();
+		logger.info("training over!");
+		logger.info("training time: " + (endTime - startTime) / 1000 + " s\n");
+	}
+
+	private double[] trainWithSubInstance() throws Exception
+	{
+		Logger logger = Logger.getLogger("pos");
+		logger.info("training in thread " + id + " start...");
+
+		int num = instanceList.size() / threadNum;
+		int startIndex, endIndex;
+
+		//for each thread, it only uses instance from startIndex to endIndex
+		if (id < threadNum - 1)
+		{
+			startIndex = num * id;
+			endIndex = startIndex + num - 1;
+		}
+		else
+		{
+			startIndex = num * (threadNum - 1);
+			endIndex = instanceList.size() - 1;
+		}
+
+		for (int instIndex = startIndex; instIndex <= endIndex; instIndex++)
+		{
+			if (((instIndex - startIndex + 1)) % 500 == 0)
+				logger.info("thread " + id + ": " + (instIndex - startIndex + 1));
+
+			Vector<String> sentence = instanceList.elementAt(instIndex).words;
+			Vector<String> predLabel = new Vector<String>();
+			posViterbiDecode(sentence, predLabel);
+
+			if (predLabel.size() != sentence.size())
+			{
+				throw new Exception("When decoding " + (instIndex + 1)
+						+ " instance , the number of result POS is not the same to the number of words!");
+			}
+
+			// if the prediction is correct, next instance
+			if (predLabel.equals(instanceList.elementAt(instIndex).label))
+				continue;
+
+			PosInstance preInstance = new PosInstance(sentence, predLabel);
+
+			// get feature vector of predicted result
+			Pipe predPipe = new Pipe(preInstance, model.featMap.feature2Int, posDic);
+
+			//update parameter according current instance
+			model.update(posPipeList.elementAt(instIndex).feature, predPipe.feature);
+			//			model.addToTotal(tmpTotal);
+		}
+
+		//tell the thread manager, this thread has finished it's work
+		finishSigle.countDown();
+		logger.info("thread " + id + " finish!");
+		return model.parameter;
+	}
+
+	@Override
+	public double[] call() throws Exception
+	{
+		return trainWithSubInstance();
 	}
 }

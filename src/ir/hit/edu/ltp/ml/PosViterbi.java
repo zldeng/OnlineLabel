@@ -25,9 +25,9 @@ import ir.hit.edu.ltp.util.OutputStreams;
  */
 public class PosViterbi implements Runnable
 {
-	protected  OnlineLabelModel model;
-	protected  PosDic posDic;
-	protected  Vector<String> allLabel;
+	protected OnlineLabelModel model;
+	protected PosDic posDic;
+	protected Vector<String> allLabel;
 
 	//the three variables are use for Multi-Thread
 	private static InputStreams br;
@@ -149,9 +149,8 @@ public class PosViterbi implements Runnable
 		return tmpMaxScore;
 	}
 
-
 	/**
-	 * POS for a segmented file 
+	 * POS for a segmented file
 	 * each sentence is in a line words are separated with blank space
 	 * the function can use only one thread
 	 * 
@@ -239,7 +238,7 @@ public class PosViterbi implements Runnable
 		Thread[] threadVec = new Thread[threadNum];
 		for (int i = 0; i < threadNum; i++)
 		{
-			threadVec[i] = new Thread(new PosViterbi(model,posDic,allLabel));
+			threadVec[i] = new Thread(new PosViterbi(model, posDic, allLabel));
 			threadVec[i].start();
 		}
 
@@ -359,10 +358,10 @@ public class PosViterbi implements Runnable
 
 				if (0 == sentenceNum % 300)
 					logger.info("sentence " + sentenceNum);
-				
+
 				if (line.trim().equals(""))
 					continue;
-				
+
 				String[] sentence = line.trim().split(" ");
 				Vector<String> words = new Vector<String>();
 				for (int i = 0; i < sentence.length; ++i)

@@ -36,7 +36,7 @@ public class SegViterbi implements Runnable
 	private static InputStreams br;
 	private static OutputStreams wr;
 	private static int sentenceNum = 0;
-	
+
 	public SegViterbi(OnlineLabelModel model, SegDic segDic, Vector<String> allLabel)
 	{
 		this.model = model;
@@ -222,17 +222,18 @@ public class SegViterbi implements Runnable
 		logger.info("testing time: " + (endTime - startTime) / 1000 + " s" + "\n");
 
 	}
-	
+
 	/**
 	 * segment for a file
 	 * one raw sentence in each line in the file
 	 * 
 	 * @param testFile
 	 * @param resultFile
-	 * @param threadNum thread number
+	 * @param threadNum
+	 *            thread number
 	 * @throws Exception
 	 */
-	public void segForFile(final String testFile, final String resultFile,final int threadNum) throws Exception
+	public void segForFile(final String testFile, final String resultFile, final int threadNum) throws Exception
 	{
 		br = new InputStreams(testFile);
 		wr = new OutputStreams(resultFile);
@@ -246,18 +247,17 @@ public class SegViterbi implements Runnable
 		}
 
 		long startTime = System.currentTimeMillis();
-		
 
 		Thread[] threadVec = new Thread[threadNum];
 		for (int i = 0; i < threadNum; i++)
 		{
-			threadVec[i] = new Thread(new SegViterbi(model,segDic,allLabel));
+			threadVec[i] = new Thread(new SegViterbi(model, segDic, allLabel));
 			threadVec[i].start();
 		}
 
 		for (int i = 0; i < threadNum; i++)
 			threadVec[i].join();
-		
+
 		logger.info("test finish!");
 		long endTime = System.currentTimeMillis();
 		logger.info("test time: " + (endTime - startTime) / 1000 + " s" + "\n");
@@ -411,7 +411,7 @@ public class SegViterbi implements Runnable
 	{
 		// TODO Auto-generated method stub
 		String raw_sen;
-		
+
 		try
 		{
 			Logger logger = Logger.getLogger("seg");
@@ -422,15 +422,15 @@ public class SegViterbi implements Runnable
 					logger.info("sentence " + sentenceNum);
 				if (raw_sen.trim().equals(""))
 					continue;
-				
+
 				Vector<String> resultVec = new Vector<String>();
 				segViterbiDecode(raw_sen.trim(), resultVec);
 
 				String result = "";
 				for (String str : resultVec)
 					result += str + " ";
-				
-				wr.writerLine(result.trim() + "\n");			
+
+				wr.writerLine(result.trim() + "\n");
 			}
 		} catch (IOException e)
 		{

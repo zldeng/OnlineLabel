@@ -35,8 +35,8 @@ public class OnlineLabelModel
 	{
 		this.featMap = fm;
 		parameter = new double[fm.feature2Int.size()];
-		for (int i = 0; i < parameter.length; i++)
-			parameter[i] = 0;
+//		for (int i = 0; i < parameter.length; i++)
+//			parameter[i] = 0;
 	}
 
 	// get score according feature vector

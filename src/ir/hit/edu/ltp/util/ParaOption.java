@@ -33,7 +33,7 @@ public class ParaOption
 		option.addOption("devFile", true, "dev file");
 		option.addOption("testFile", true, "test file");
 		option.addOption("result", true, "result file");
-		option.addOption("thread",true,"thread number,just use in testing");
+		option.addOption("thread",true,"thread number");
 		option.addOption("compress",true,"the ratio of compress model,which is the proportion of features you want to remove");
 		CommandLineParser parser = new PosixParser();
 		cmd = parser.parse(option, args);
@@ -65,6 +65,11 @@ public class ParaOption
 			dicFile = cmd.getOptionValue("dicFile");
 			devFile = cmd.getOptionValue("devFile");
 			iterator = Integer.parseInt(cmd.getOptionValue("iterator"));
+			
+			if (cmd.hasOption("thread"))
+				threadNum = Integer.parseInt(cmd.getOptionValue("thread"));
+			else
+				threadNum = 1;
 			
 			if (cmd.hasOption("compress"))
 				compressRatio = Double.parseDouble(cmd.getOptionValue("compress"));

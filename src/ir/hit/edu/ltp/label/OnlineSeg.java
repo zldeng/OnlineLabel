@@ -30,11 +30,14 @@ public class OnlineSeg
 			logger.info("Dictionary file: " + option.dicFile);
 			logger.info("Model file: " + option.modelFile);
 			logger.info("Iterator number: " + option.iterator);
+			logger.info("thread number: " + option.threadNum);
 			logger.info("compress retio: " + option.compressRatio + "\n");
 
 			logger.info("start to train....");
 			SegAP segger = new SegAP();
-			segger.segAPTrain(option.trainFile, option.modelFile, option.dicFile, option.iterator, option.devFile,option.compressRatio);
+			//			segger.segAPTrain(option.trainFile, option.modelFile, option.dicFile, option.iterator, option.devFile,option.compressRatio);
+			segger.segAPTrain(option.trainFile, option.modelFile, option.dicFile, option.iterator, option.devFile,
+					option.compressRatio, option.threadNum);
 		}
 		else if (option.test)
 		{
@@ -47,17 +50,16 @@ public class OnlineSeg
 			logger.info("testing start...");
 			SegViterbi segger = new SegViterbi();
 			segger.loadResource(option.modelFile, option.dicFile);
-			segger.segForFile(option.testFile, option.resultFile,option.threadNum);
+			segger.segForFile(option.testFile, option.resultFile, option.threadNum);
 		}
-
 	}
 
 	private static void printUsag()
 	{
 		Logger logger = Logger.getLogger("seg");
 		logger.info("Usag:");
-		logger.info("train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file");
-		logger.info("test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum [opt]-compress compressRetio\n");
+		logger.info("train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum");
+		logger.info("test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum \n");
 	}
 
 }
