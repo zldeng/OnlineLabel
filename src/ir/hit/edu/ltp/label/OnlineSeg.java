@@ -35,7 +35,6 @@ public class OnlineSeg
 
 			logger.info("start to train....");
 			SegAP segger = new SegAP();
-			//			segger.segAPTrain(option.trainFile, option.modelFile, option.dicFile, option.iterator, option.devFile,option.compressRatio);
 			segger.segAPTrain(option.trainFile, option.modelFile, option.dicFile, option.iterator, option.devFile,
 					option.compressRatio, option.threadNum);
 		}
