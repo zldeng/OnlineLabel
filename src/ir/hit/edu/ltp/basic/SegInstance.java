@@ -208,9 +208,26 @@ public class SegInstance
 		if (curChar.equals(next2Char))
 			featVec.add("0ABABT");
 
-		//char type feature
+		//char type unigram feature
 		featVec.add("charType=" + charType.elementAt(position));
+		
+		//char type five-gram feature
+		String trigram = "";
 
+		if (position > 0)
+			trigram += charType.elementAt(position-1);
+		else
+			trigram += "_BT_";
+		
+		trigram += "/" + charType.elementAt(position);
+		
+		if (position < sentence.size() - 1)
+			trigram += "/" + charType.elementAt(position + 1);
+		else
+			trigram += "/_EL_";
+		
+		featVec.add("charTypeTir=" + trigram);
+		
 		//dictionary feature
 		featVec.add("begin=" + begin.elementAt(position));
 		featVec.add("middle=" + middle.elementAt(position));
