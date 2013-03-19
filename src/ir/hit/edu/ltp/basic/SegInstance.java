@@ -211,7 +211,7 @@ public class SegInstance
 		//char type unigram feature
 		featVec.add("charType=" + charType.elementAt(position));
 		
-		//char type five-gram feature
+		//char type trigram feature
 		String trigram = "";
 
 		if (position > 0)
