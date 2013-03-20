@@ -159,7 +159,7 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 * [CTB5.0](http://ir.hit.edu.cn/~zldeng/POS_Tagger_data/ctb5.0-pos.zip)
 * [人民日报](http://ir.hit.edu.cn/~zldeng/POS_Tagger_data/peopleDaily1998-pos.zip)
 
-###分词模型性能：	
+###词性标注模型性能：	
 
 * conll06性能：开发集：94.3%，测试集：93.7%
 * CTB5.0性能：开发集：95.19% 测试集：94.71%
