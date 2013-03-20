@@ -25,23 +25,27 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 ###注意：所有输入输出文件均使用UTF-8编码
 
-###文件说明：
+文件说明：
+---
 
 *data目录：
+
 （1）pos
-		conll06.pos.dic：conll06训练语料中抽取的词性标注词典，词典获取的方法是保存训练语料中出现次数大于等于3次的词语及相关词性。
-		dev.conll06.pos.gold：conll06语料词性标注开发集gold文件
-		test.conll06.seg：conll06语料词性标注测试集文件
-		test.conll06.pos：conll06语料词性标注测试集gold文件
-		pos.tran.sample：词性标注训练语料样例
+    conll06.pos.dic：conll06训练语料中抽取的词性标注词典，词典获取的方法是保存训练语料中出现次数大于等于3次的词语及相关词性。
+    dev.conll06.pos.gold：conll06语料词性标注开发集gold文件
+    test.conll06.seg：conll06语料词性标注测试集文件
+    test.conll06.pos：conll06语料词性标注测试集gold文件
+    pos.tran.sample：词性标注训练语料样例
 *（2）seg
-		pku_training.dic.utf8： PKU训练语料词典。词典内容为训练语料中统计词频大于等于3的词语。
-		pku.test.gold：PKU语料测试集gold文件
-		pku.test：PKU语料测试集文件
-		seg.train.sample：分词训练语料样例
+
+    pku_training.dic.utf8： PKU训练语料词典。词典内容为训练语料中统计词频大于等于3的词语。
+    pku.test.gold：PKU语料测试集gold文件
+    pku.test：PKU语料测试集文件
+    seg.train.sample：分词训练语料样例
 	
-lib目录：
-	包含系统引用的jar包 
+*lib目录：
+
+    包含系统引用的jar包 
 
 config目录：
 	存放相关的配置文件。目前只包含log4j的配置文件。
