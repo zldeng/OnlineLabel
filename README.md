@@ -28,15 +28,17 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 文件说明：
 ---
 
-*data目录：
+###data目录：
 
 （1）pos
-    conll06.pos.dic：conll06训练语料中抽取的词性标注词典，词典获取的方法是保存训练语料中出现次数大于等于3次的词语及相关词性。
-    dev.conll06.pos.gold：conll06语料词性标注开发集gold文件
-    test.conll06.seg：conll06语料词性标注测试集文件
-    test.conll06.pos：conll06语料词性标注测试集gold文件
-    pos.tran.sample：词性标注训练语料样例
-*（2）seg
+
+* conll06.pos.dic：conll06训练语料中抽取的词性标注词典，词典获取的方法是保存训练语料中出现次数大于等于3次的词语及相关词性。
+* dev.conll06.pos.gold：conll06语料词性标注开发集gold文件
+* test.conll06.seg：conll06语料词性标注测试集文件
+* test.conll06.pos：conll06语料词性标注测试集gold文件
+* pos.tran.sample：词性标注训练语料样例
+
+（2）seg
 
     pku_training.dic.utf8： PKU训练语料词典。词典内容为训练语料中统计词频大于等于3的词语。
     pku.test.gold：PKU语料测试集gold文件
