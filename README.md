@@ -57,6 +57,14 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 存放系统运行的log文件。log文件的文件名可在config目录下的配置文件中进行更改。
 
+###Tools目录：
+
+* GetPosDic.java：从词性标注训练语料中获取词性标注词典
+* GetSegDic.java：从分词训练语料中获取分词词典
+* WSEval.java：分词性能评测工具
+* PosEval.java：词性标注性能评测工具
+* JointEval.java：分词、词性标注联合评测工具
+
 词性标注使用的特征：
 ---
 
