@@ -29,7 +29,7 @@ data目录：
 		seg.train.sample：分词训练语料样例
 	
 lib目录：
-	包含系统引用的jar包
+	包含系统引用的jar包 
 
 config目录：
 	存放相关的配置文件。目前只包含log4j的配置文件。
