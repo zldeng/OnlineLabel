@@ -19,8 +19,8 @@ public class Test
 
 		// TODO Auto-generated method stub
 		/**************** SEG **************/
-		String segModel = "./model/pku.seg.model-12";
-		String segDic = "./data/seg/pku.seg.dic";
+		String segModel = "./models/pku-seg/pku.seg.model";
+		String segDic = "./models/pku-seg/pku_training.dic.utf8";
 
 		SegAP segger = new SegAP();
 		segger.loadResource(segModel, segDic);
@@ -43,8 +43,8 @@ public class Test
 		System.out.println(result.toString());
 
 		/**************** POS **************/
-		String posModel = "./model/conll06.pos.model";
-		String posDic = "./data/pos/conll06.pos.dic";
+		String posModel = "./models/conll06-pos/conll06.pos.model";
+		String posDic = "./models/conll06-pos/conll06.pos.dic";
 
 		PosAP posTagger = new PosAP();
 		posTagger.loadResource(posModel, posDic);
