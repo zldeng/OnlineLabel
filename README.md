@@ -9,9 +9,9 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 系统支持多线程测试，测试时可通过thread参数来设置线程数。该参数是可选的，默认设置为单线程。
 
-系统在训练时可使用多线程来进行并行训练，但是当整个训练语料规模比较小时，并行训练性能可能会比单独串行训练略偏低。
+系统在训练时可使用多线程来进行并行训练，但是当整个训练语料规模比较小时，并行训练性能可能会比单独串行训练略偏低。该参数是可选的，默认设置为单线程。
 
-并行训练的实现参照Ryan McDonald等人2009年NAACL论文《Distributed Training Strategies for the Structured Perceptron》。该参数是可选的，默认设置为单线程。
+并行训练的实现参照Ryan McDonald等人2009年NAACL论文《Distributed Training Strategies for the Structured Perceptron》。
 
 单线程训练时使用Average Perceptron算法，多线程并行训练时各线程直接使用Structure Perceptron，不对参数进行Average。实验结果表明并行训练使用Structure Perceptron性能不低于使用Average Perceptron。
 
