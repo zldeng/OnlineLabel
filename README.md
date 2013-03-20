@@ -40,22 +40,25 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 （2）seg
 
-    pku_training.dic.utf8： PKU训练语料词典。词典内容为训练语料中统计词频大于等于3的词语。
-    pku.test.gold：PKU语料测试集gold文件
-    pku.test：PKU语料测试集文件
-    seg.train.sample：分词训练语料样例
+* pku_training.dic.utf8： PKU训练语料词典。词典内容为训练语料中统计词频大于等于3的词语。
+* pku.test.gold：PKU语料测试集gold文件
+* pku.test：PKU语料测试集文件
+* seg.train.sample：分词训练语料样例
 	
-*lib目录：
+###lib目录：
 
-    包含系统引用的jar包 
+包含系统引用的jar包 
 
-config目录：
-	存放相关的配置文件。目前只包含log4j的配置文件。
+###config目录：
 
-log目录：
-	存放系统运行的log文件。log文件的文件名可在config目录下的配置文件中进行更改。
+存放相关的配置文件。目前只包含log4j的配置文件。
 
-词性标注使用的特征：
+###log目录：
+
+存放系统运行的log文件。log文件的文件名可在config目录下的配置文件中进行更改。
+
+###词性标注使用的特征：
+
   词语的n_gram特征：	
 		w_i (i = -2,-1,0,1,2)
 		w_i,w_i+1 (i = -1,0)
