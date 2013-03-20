@@ -1,5 +1,5 @@
 ###OnlineLabel简介：
-	
+
 	OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perceptron算法原理可参照Michael Collins2002年《Discriminative Training Methods for Hidden Markov Models：Theory and Experiments with Perceptron Algorithms》论文。
 	目前系统提供了分词、词性标注训练和测试功能。
 	系统支持多线程测试，测试时可通过thread参数来设置线程数。该参数是可选的，默认设置为单线程。
