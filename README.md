@@ -3,26 +3,24 @@
 	目前系统提供了分词、词性标注训练和测试功能。
 	系统支持多线程测试，测试时可通过thread参数来设置线程数。该参数是可选的，默认设置为单线程。
 	系统在训练时可使用多线程来进行并行训练，但是当整个训练语料规模比较小时，并行训练性能可能会比单独串行训练略偏低。
-并行训练的实现参照Ryan McDonald等人2009年NAACL论文《Distributed Training Strategies for the Structured Perceptron》。
-该参数是可选的，默认设置为单线程。
-	单线程训练时使用Average Perceptron算法，多线程并行训练时各线程直接使用Structure Perceptron，不对参数进行Average。
-实验结果表明并行训练使用Structure Perceptron性能不低于使用Average Perceptron。
-	在训练时需要提供开发集。在训练过程中会保存每轮迭代产生的模型，并使用开发集对模型进行性能评价。用户可根据训练的log文
-件选择性能最优的模型。当然保存每轮迭代的模型造成了训练时间的增加。	
+	并行训练的实现参照Ryan McDonald等人2009年NAACL论文《Distributed Training Strategies for the Structured Perceptron》。该参数是可选的，默认设置为单线程。
+	单线程训练时使用Average Perceptron算法，多线程并行训练时各线程直接使用Structure Perceptron，不对参数进行Average。实验结果表明并行训练使用Structure Perceptron性能不低于使用Average Perceptron。
+	在训练时需要提供开发集。在训练过程中会保存每轮迭代产生的模型，并使用开发集对模型进行性能评价。用户可根据训练的log文件件选择性能最优的模型。当然保存每轮迭代的模型造成了训练时间的增加。	
 	从命令行进行分词训练和测试命令可参考目录下的seg.train.sh和seg.test.sh文件
 	从命令行进行词性标注训练和测试命令可参考目录下的pos.train.sh和pos.test.sh文件
 	目前系统提供了模型压缩功能，在训练时通过设定模型特征删除比例来控制删除的特征数量。该参数是可选的，默认对模型不进行压缩。特征删除比例通过参数“-compress”选项进行设置，具体使用可参考pos.train.sh和seg.train.sh文件。
-注意：所有输入输出文件均使用UTF-8编码
 
-文件说明：
-data目录：
+###注意：所有输入输出文件均使用UTF-8编码
+
+###文件说明：
+*data目录：
 （1）pos
 		conll06.pos.dic：conll06训练语料中抽取的词性标注词典，词典获取的方法是保存训练语料中出现次数大于等于3次的词语及相关词性。
 		dev.conll06.pos.gold：conll06语料词性标注开发集gold文件
 		test.conll06.seg：conll06语料词性标注测试集文件
 		test.conll06.pos：conll06语料词性标注测试集gold文件
 		pos.tran.sample：词性标注训练语料样例
-（2）seg
+*（2）seg
 		pku_training.dic.utf8： PKU训练语料词典。词典内容为训练语料中统计词频大于等于3的词语。
 		pku.test.gold：PKU语料测试集gold文件
 		pku.test：PKU语料测试集文件
