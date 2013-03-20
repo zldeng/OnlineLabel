@@ -26,7 +26,7 @@ data目录：
 	seg.train.sample：分词训练语料格式样例
 	
 model文件：
-	由于github在clone是速度的限制，因此将模型文件保存在，如果需要请到下载，同时还提供了相应的词典文件。
+	由于github在clone时速度的限制，因此将模型文件保存在SCIR服务器上，如果需要请到下载，在服务器上同时还提供了各个训练语料对应的词典文件。
 	分词分别使用了PKU、ctb5.0以及人民日报1998年1-6月份语料训练模型。ctb5.0和pku均是按照标准划分，人民日报使用2-6月份训练。
 		模型下载地址：
 			PKU：http://ir.hit.edu.cn/~zldeng/word_segment_data/pku-seg.zip
