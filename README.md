@@ -131,26 +131,36 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 模型文件的获取：
 ---
 由于版权限制，本系统不提供训练语料。但是提供使用各种语料训练好的模型。
-	由于github在clone时速度的限制，因此将模型文件保存在SCIR服务器上，如果需要可到服务器下载，在服务器上同时还提供了从各个训练语料中提取的词典文件。
-分词：
-	分词分别使用了PKU、CTB5.0以及人民日报1998年1-6月份语料训练模型。CTB5.0和PKU均是按照常使用的划分标准进行数据划分，人民日报使用2-6月份训练。
-分词模型下载地址：
-PKU：http：//ir.hit.edu.cn/~zldeng/word_segment_data/pku-seg.zip
-CTB5.0：http：//ir.hit.edu.cn/~zldeng/word_segment_data/ctb5.0-seg.zip
-人民日报：
-http：//ir.hit.edu.cn/~zldeng/word_segment_data/peopleDaily1998-seg.zip
-分词模型性能：
-PKU性能：P： 94.6% R： 94.8% F：94.7%
-	CTB5.0性能：开发集：P： 94.38% R：94.62% F： 94.50%	测试集：P：96.64% R：97.71%  F：97.18%
-	人民日报使用1月份语料测试：P：97.10% R：97.58 F：97.34%
-词性标注：
-	词性标注使用了CTB5.0、conll06以及人民日报1998年1-6月份语料训练模型，CTB5.0和conll6根据常用划分方式进行数据划分，人民日报使用2-6月份训练。
-词性标注模型下载地址：
-conll06：http：//ir.hit.edu.cn/~zldeng/POS_Tagger_data/conll06-pos.zip
-	CTB5.0：http：//ir.hit.edu.cn/~zldeng/POS_Tagger_data/ctb5.0-pos.zip
-	人民日报：
-http：//ir.hit.edu.cn/~zldeng/POS_Tagger_data/peopleDaily1998-pos.zip
-分词模型性能：	
-	conll06性能：开发集：94.3%，测试集：93.7%
-	CTB5.0性能：开发集：95.19% 测试集：94.71%
-	人民日报使用1月份语料进行测试，性能为：97.98%
+由于github在clone时速度的限制，因此将模型文件保存在SCIR服务器上，如果需要可到服务器下载，在服务器上同时还提供了从各个训练语料中提取的词典文件。
+
+###分词：
+
+分词分别使用了PKU、CTB5.0以及人民日报1998年1-6月份语料训练模型。CTB5.0和PKU均是按照常使用的划分标准进行数据划分，人民日报使用2-6月份训练。
+
+###分词模型下载地址：
+
+* PKU：http：//ir.hit.edu.cn/~zldeng/word_segment_data/pku-seg.zip
+* CTB5.0：http：//ir.hit.edu.cn/~zldeng/word_segment_data/ctb5.0-seg.zip
+* 人民日报：http：//ir.hit.edu.cn/~zldeng/word_segment_data/peopleDaily1998-seg.zip
+
+###分词模型性能：
+
+* PKU性能：P： 94.6% R： 94.8% F：94.7%
+* CTB5.0性能：开发集：P： 94.38% R：94.62% F： 94.50%	测试集：P：96.64% R：97.71%  F：97.18%
+* 人民日报使用1月份语料测试：P：97.10% R：97.58 F：97.34%
+
+###词性标注：
+
+词性标注使用了CTB5.0、conll06以及人民日报1998年1-6月份语料训练模型，CTB5.0和conll6根据常用划分方式进行数据划分，人民日报使用2-6月份训练。
+
+###词性标注模型下载地址：
+
+* conll06：http：//ir.hit.edu.cn/~zldeng/POS_Tagger_data/conll06-pos.zip
+* CTB5.0：http：//ir.hit.edu.cn/~zldeng/POS_Tagger_data/ctb5.0-pos.zip
+* 人民日报：http：//ir.hit.edu.cn/~zldeng/POS_Tagger_data/peopleDaily1998-pos.zip
+
+###分词模型性能：	
+
+* conll06性能：开发集：94.3%，测试集：93.7%
+* CTB5.0性能：开发集：95.19% 测试集：94.71%
+* 人民日报使用1月份语料进行测试，性能为：97.98%
