@@ -1,9 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 
 public class WSEval
 {
@@ -15,13 +13,14 @@ public class WSEval
 	public static void main(String[] args) throws IOException
 	{
 		// TODO Auto-generated method stub
+		if (2 != args.length)
+		{
+			System.out.println("Usag: java WSEval gold_file[in] predict_file[out] ");
+			return;
+		}
 
-		InputStreamReader isGold = new InputStreamReader(new FileInputStream("./fudan-icwb/msr_test_gold.utf8"),
-				"UTF-8");
-		BufferedReader brGold = new BufferedReader(isGold);
-		InputStreamReader isPred = new InputStreamReader(new FileInputStream("./fudan-icwb/msr_test_result.utf8"),
-				"UTF-8");
-		BufferedReader brPred = new BufferedReader(isPred);
+		BufferedReader brGold = new BufferedReader(new InputStreamReader(new FileInputStream(args[0]), "UTF-8"));
+		BufferedReader brPred = new BufferedReader(new InputStreamReader(new FileInputStream(args[1]), "UTF-8"));
 
 		int goldTotal = 0, predTotal = 0, correct = 0;
 		String goldStr, predStr;

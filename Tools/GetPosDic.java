@@ -17,10 +17,16 @@ public class GetPosDic
 	public static void main(String[] args) throws IOException
 	{
 		// TODO Auto-generated method stub
-		InputStreamReader is = new InputStreamReader(new FileInputStream("./train.conll06.pos"), "UTF-8");
+		if (2 != args.length)
+		{
+			System.out.println("Usag: java GetPosDic pos_train_file[in] pos_dic_file[out] ");
+			return;
+		}
+
+		InputStreamReader is = new InputStreamReader(new FileInputStream(args[0]), "UTF-8");
 		BufferedReader br = new BufferedReader(is);
 
-		PrintWriter posDicWriter = new PrintWriter(new FileWriter("./train.conll06.pos.dic"));
+		PrintWriter posDicWriter = new PrintWriter(new FileWriter(args[1]));
 
 		HashMap<String, Integer> wordCount = new HashMap<String, Integer>();
 		HashMap<String, Vector<String>> wordPos = new HashMap<String, Vector<String>>();

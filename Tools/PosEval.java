@@ -13,15 +13,15 @@ public class PosEval
 	public static void main(String[] args) throws IOException
 	{
 		// TODO Auto-generated method stub
-
-		String goldFile = "./postagged-test";
-
-		String predFile = "./seg-test.result";
-
-		InputStreamReader goldIs = new InputStreamReader(new FileInputStream(goldFile), "UTF-8");
+		if (2 != args.length)
+		{
+			System.out.println("Usag: java PosEval gold_file[in] predict_file[out] ");
+			return;
+		}
+		InputStreamReader goldIs = new InputStreamReader(new FileInputStream(args[0]), "UTF-8");
 		BufferedReader goldBr = new BufferedReader(goldIs);
 
-		InputStreamReader predIis = new InputStreamReader(new FileInputStream(predFile), "UTF-8");
+		InputStreamReader predIis = new InputStreamReader(new FileInputStream(args[1]), "UTF-8");
 		BufferedReader predBr = new BufferedReader(predIis);
 
 		String str1, str2;

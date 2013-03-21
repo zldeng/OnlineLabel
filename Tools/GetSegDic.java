@@ -16,10 +16,14 @@ public class GetSegDic
 	public static void main(String[] args) throws IOException
 	{
 		// TODO Auto-generated method stub
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(
-				"./pku/pku-only-one-of-ten.train.utf8"), "UTF-8"));
-		PrintWriter uniWr = new PrintWriter(new OutputStreamWriter(new FileOutputStream(
-				"./pku/pku-only-one-of-ten.dic.utf8"), "UTF-8"));
+		if (2 != args.length)
+		{
+			System.out.println("Usag: java GetSegDic seg_train_file[in] seg_dic_file[out] ");
+			return;
+		}
+
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(args[0]), "UTF-8"));
+		PrintWriter uniWr = new PrintWriter(new OutputStreamWriter(new FileOutputStream(args[1]), "UTF-8"));
 		HashMap<String, Integer> unigramCount = new HashMap<String, Integer>();
 		final int threshold = 3;
 		String line;
