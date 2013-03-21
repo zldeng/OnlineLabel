@@ -17,9 +17,9 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 在训练时需要提供开发集。在训练过程中会保存每轮迭代产生的模型，并使用开发集对模型进行性能评价。用户可根据训练的log文件件选择性能最优的模型。当然保存每轮迭代的模型造成了训练时间的增加。	
 
-从命令行进行分词训练和测试命令可参考目录下的seg.train.sh和seg.test.sh文件
+从命令行进行分词训练和测试命令可参考scripts目录下的seg.train.sh和seg.test.sh文件
 
-从命令行进行词性标注训练和测试命令可参考目录下的pos.train.sh和pos.test.sh文件
+从命令行进行词性标注训练和测试命令可参考scripts目录下的pos.train.sh和pos.test.sh文件
 
 目前系统提供了模型压缩功能，在训练时通过设定模型特征删除比例来控制删除的特征数量。该参数是可选的，默认对模型不进行压缩。特征删除比例通过参数“-compress”选项进行设置，具体使用可参考pos.train.sh和seg.train.sh文件。
 
@@ -56,6 +56,13 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 ###log目录：
 
 存放系统运行的log文件。log文件的文件名可在config目录下的配置文件中进行更改。
+
+###scripts目录：
+
+* pos.train.sh：词性标注训练命令示例
+* pos.test.sh：词性标注测试命令示例
+* seg.train.sh：分词训练命令示例
+* seg.test.sh：分词测试命令示例
 
 ###Tools目录：
 
