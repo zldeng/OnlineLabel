@@ -149,7 +149,11 @@ public class PosViterbi implements Runnable
 		}
 
 		Vector<String> result = itemVector.elementAt(wordsNum - 1).get(maxIndex).inst.label;
+<<<<<<< HEAD
 		predLable.clear();
+=======
+		predLabel.clear();
+>>>>>>> 92d1a0caf96c4db69e849ed3711098c89fbd8bef
 		for (int i = 0; i < result.size(); i++)
 			predLable.add(result.elementAt(i));
 

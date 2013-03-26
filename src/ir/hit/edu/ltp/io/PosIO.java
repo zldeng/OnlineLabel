@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.Vector;
 
 import ir.hit.edu.ltp.basic.PosInstance;
+import ir.hit.edu.ltp.util.FullCharConverter;
 
 /**
  * read POS instance from file
@@ -46,7 +47,7 @@ public class PosIO
 			for (String str : token)
 			{
 				String[] tmp = str.split("_");
-				words.add(tmp[0]);
+				words.add(FullCharConverter.half2Fullchange(tmp[0]));
 				label.add(tmp[1]);
 
 				if (!allLabel.contains(tmp[1]))
