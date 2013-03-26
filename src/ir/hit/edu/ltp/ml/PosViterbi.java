@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 import org.apache.log4j.Logger;
 
@@ -14,6 +15,7 @@ import ir.hit.edu.ltp.basic.*;
 import ir.hit.edu.ltp.model.*;
 import ir.hit.edu.ltp.util.CharType;
 import ir.hit.edu.ltp.dic.*;
+import ir.hit.edu.ltp.util.FullCharConverter;
 import ir.hit.edu.ltp.util.InputStreams;
 import ir.hit.edu.ltp.util.OutputStreams;
 
@@ -44,8 +46,12 @@ public class PosViterbi implements Runnable
 	public PosViterbi()
 	{}
 
-	public double posViterbiDecode(Vector<String> sentence, Vector<String> predLable)
-	{
+	public double posViterbiDecode(Vector<String> originSentence, Vector<String> predLable) throws UnsupportedEncodingException
+	{		
+		Vector<String> sentence = new Vector<String>();
+		for (String str: originSentence)
+			sentence.add(FullCharConverter.half2Fullchange(str));
+				
 		final int wordsNum = sentence.size();
 		Vector<Vector<PosItem>> itemVector = new Vector<Vector<PosItem>>();
 		for (int i = 0; i < sentence.size(); i++)
@@ -143,6 +149,7 @@ public class PosViterbi implements Runnable
 		}
 
 		Vector<String> result = itemVector.elementAt(wordsNum - 1).get(maxIndex).inst.label;
+		predLable.clear();
 		for (int i = 0; i < result.size(); i++)
 			predLable.add(result.elementAt(i));
 
