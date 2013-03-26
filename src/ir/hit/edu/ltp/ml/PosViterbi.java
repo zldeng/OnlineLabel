@@ -46,7 +46,7 @@ public class PosViterbi implements Runnable
 	public PosViterbi()
 	{}
 
-	public double posViterbiDecode(Vector<String> originSentence, Vector<String> predLable) throws UnsupportedEncodingException
+	public double posViterbiDecode(Vector<String> originSentence, Vector<String> predLabel) throws UnsupportedEncodingException
 	{		
 		Vector<String> sentence = new Vector<String>();
 		for (String str: originSentence)
@@ -149,13 +149,10 @@ public class PosViterbi implements Runnable
 		}
 
 		Vector<String> result = itemVector.elementAt(wordsNum - 1).get(maxIndex).inst.label;
-<<<<<<< HEAD
-		predLable.clear();
-=======
+
 		predLabel.clear();
->>>>>>> 92d1a0caf96c4db69e849ed3711098c89fbd8bef
 		for (int i = 0; i < result.size(); i++)
-			predLable.add(result.elementAt(i));
+			predLabel.add(result.elementAt(i));
 
 		return tmpMaxScore;
 	}
