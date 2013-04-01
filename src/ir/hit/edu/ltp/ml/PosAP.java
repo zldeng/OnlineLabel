@@ -25,7 +25,7 @@ import ir.hit.edu.ltp.util.MyTools;
  * @author dzl
  * 
  */
-public class PosAP extends PosViterbi implements Callable<double[]>
+public class PosAP extends PosViterbi implements Callable<float[]>
 {
 	private Vector<PosInstance> instanceList;
 	private Vector<Pipe> posPipeList;
@@ -133,28 +133,36 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 
 				int inst = intList.indexOf(q);
 
-				Vector<String> sentence = instanceList.elementAt(inst).words;
+				String[] sentence = instanceList.elementAt(inst).words;
 				Vector<String> predLabel = new Vector<String>();
-				posViterbiDecode(sentence, predLabel);
+				pos(sentence, predLabel);
 
-				if (predLabel.size() != sentence.size())
+				if (predLabel.size() != sentence.length)
 				{
 					logger.error("predicted size is not same to gold size, pre size: " + predLabel.size()
-							+ " sen size: " + sentence.size());
+							+ " sen size: " + sentence.length);
 					throw new Exception("When decoding " + (inst + 1)
 							+ " instance , the number of result POS is not the same to the number of words!");
 				}
 
-				// if the prediction is correct, next instance
-				if (predLabel.equals(instanceList.elementAt(inst).label))
-					continue;
+				String[] predArray = new String[predLabel.size()];
+				for (int m = 0; m < predArray.length; m++)
+					predArray[m] = predLabel.elementAt(m);
 
-				PosInstance preInstance = new PosInstance(sentence, predLabel);
+				// if the prediction is correct, next instance
+				if (predArray.equals(instanceList.elementAt(inst).label))
+				{
+					sentence = null;
+					predLabel = null;
+					predArray = null;
+					continue;
+				}
+				PosInstance preInstance = new PosInstance(sentence, predArray);
 
 				// get feature vector of predicted result
 				Pipe predPipe = new Pipe(preInstance, model.featMap.feature2Int, posDic);
 
-				if (posPipeList.elementAt(inst).feature.size() != predPipe.feature.size())
+				if (posPipeList.elementAt(inst).feature.length != predPipe.feature.length)
 				{
 					throw new Exception(
 							"When decoding, the feature number of result POS is not the same to the gold number!");
@@ -163,6 +171,12 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 				// update model parameter and total parameter according to
 				// current instance
 				model.update(posPipeList.elementAt(inst).feature, predPipe.feature);
+
+				predArray = null;
+				preInstance = null;
+				predLabel = null;
+				predPipe = null;
+
 				model.addToTotal(total);
 			}
 			logger.info("finish iterator " + it + "\n");
@@ -173,7 +187,8 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap);
 			for (int i = 0; i < model.featMap.feature2Int.size(); i++)
 			{
-				tmpModel.parameter[i] = total[i] / (instanceList.size() * (it + 1));
+				tmpModel.parameter[i] = (float) (total[i] / (instanceList.size() * (it + 1)));
+				//				tmpModel.useNum[i] = model.useNum[i];
 			}
 
 			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel);
@@ -185,6 +200,7 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 
 			logger.info("writer model to file...\n");
 			tmpModel.writerModel(modelFile + "-it-" + it, compressRatio);
+			tmpModel = null;
 
 			if (compressRatio > 0)
 			{
@@ -193,7 +209,10 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 				logger.info("Evaluate compressed model for dev file with compressed model...");
 				devPre = tmpPosTagger.evalPos(devFile, it);
 				logger.info("the POS precision of compressed model for dev file is: " + devPre + "\n");
+				compressedModel = null;
 			}
+
+			tmpPosTagger = null;
 
 		}
 
@@ -216,6 +235,9 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 
 		logger.info("start to get instances from triang file...");
 		instanceList = PosIO.getPosInstanceFromNormalFile(trainingFile, allLabel);
+
+		System.out.println(allLabel);
+
 		logger.info("finish getting instances from traing file!");
 		logger.info("There are total " + instanceList.size() + " training instances!\n");
 
@@ -274,7 +296,7 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 			logger.info("start iterator " + it + " ...");
 
 			ExecutorService exec = Executors.newCachedThreadPool();
-			ArrayList<Future<double[]>> results = new ArrayList<Future<double[]>>();
+			ArrayList<Future<float[]>> results = new ArrayList<Future<float[]>>();
 
 			CountDownLatch finishSigle = new CountDownLatch(threadNum);
 			//create threaNum threads and submit them
@@ -283,7 +305,7 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 				//because the PosAP extends from PosViterbi and PosViterbi has implemented Runnable interface
 				//in ExecutorService, there are two submit methods, one uses a Runnable task as parameter and another uses a Callable task as parameter
 				//so we must use a cast to tell submit that we want use the submit which use a Callable parameter
-				results.add(exec.submit((Callable<double[]>) new PosAP(model, posDic, allLabel, id, instanceList,
+				results.add(exec.submit((Callable<float[]>) new PosAP(model, posDic, allLabel, id, instanceList,
 						posPipeList, finishSigle)));
 			}
 
@@ -291,13 +313,13 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 			finishSigle.await();
 			logger.info("sub-threads are all finished!");
 			logger.info("merge parameter...");
-			Vector<double[]> paraVec = new Vector<double[]>();
+			Vector<float[]> paraVec = new Vector<float[]>();
 
-			for (Future<double[]> fs : results)
+			for (Future<float[]> fs : results)
 			{
 				paraVec.add(fs.get());
 			}
-			double[] tmpPara = MyTools.mixParameter(paraVec);
+			float[] tmpPara = MyTools.mixParameter(paraVec);
 			logger.info("merge parameter over!");
 
 			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara);
@@ -329,7 +351,7 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 		logger.info("training time: " + (endTime - startTime) / 1000 + " s\n");
 	}
 
-	private double[] trainWithSubInstance() throws Exception
+	private float[] trainWithSubInstance() throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
 		logger.info("training in thread " + id + " start...");
@@ -354,11 +376,11 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 			if (((instIndex - startIndex + 1)) % 500 == 0)
 				logger.info("thread " + id + ": " + (instIndex - startIndex + 1));
 
-			Vector<String> sentence = instanceList.elementAt(instIndex).words;
+			String[] sentence = instanceList.elementAt(instIndex).words;
 			Vector<String> predLabel = new Vector<String>();
-			posViterbiDecode(sentence, predLabel);
+			pos(sentence, predLabel);
 
-			if (predLabel.size() != sentence.size())
+			if (predLabel.size() != sentence.length)
 			{
 				throw new Exception("When decoding " + (instIndex + 1)
 						+ " instance , the number of result POS is not the same to the number of words!");
@@ -368,7 +390,11 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 			if (predLabel.equals(instanceList.elementAt(instIndex).label))
 				continue;
 
-			PosInstance preInstance = new PosInstance(sentence, predLabel);
+			String[] predArray = new String[predLabel.size()];
+			for (int m = 0; m < predArray.length; m++)
+				predArray[m] = predLabel.elementAt(m);
+
+			PosInstance preInstance = new PosInstance(sentence, predArray);
 
 			// get feature vector of predicted result
 			Pipe predPipe = new Pipe(preInstance, model.featMap.feature2Int, posDic);
@@ -385,7 +411,7 @@ public class PosAP extends PosViterbi implements Callable<double[]>
 	}
 
 	@Override
-	public double[] call() throws Exception
+	public float[] call() throws Exception
 	{
 		return trainWithSubInstance();
 	}

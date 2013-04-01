@@ -16,7 +16,7 @@ public class ParaOption
 {
 	CommandLine cmd;
 	public String trainFile, devFile, testFile, dicFile, resultFile, modelFile;
-	public int iterator,threadNum;
+	public int iterator, threadNum;
 	public boolean train = false, test = false;
 	public double compressRatio = 0;
 
@@ -33,8 +33,9 @@ public class ParaOption
 		option.addOption("devFile", true, "dev file");
 		option.addOption("testFile", true, "test file");
 		option.addOption("result", true, "result file");
-		option.addOption("thread",true,"thread number");
-		option.addOption("compress",true,"the ratio of compress model,which is the proportion of features you want to remove");
+		option.addOption("thread", true, "thread number");
+		option.addOption("compress", true,
+				"the ratio of compress model,which is the proportion of features you want to remove");
 		CommandLineParser parser = new PosixParser();
 		cmd = parser.parse(option, args);
 	}
@@ -65,22 +66,16 @@ public class ParaOption
 			dicFile = cmd.getOptionValue("dicFile");
 			devFile = cmd.getOptionValue("devFile");
 			iterator = Integer.parseInt(cmd.getOptionValue("iterator"));
-			
+
 			if (cmd.hasOption("thread"))
 				threadNum = Integer.parseInt(cmd.getOptionValue("thread"));
 			else
 				threadNum = 1;
-			
+
 			if (cmd.hasOption("compress"))
 				compressRatio = Double.parseDouble(cmd.getOptionValue("compress"));
 			else
 				compressRatio = 0;
-
-			//			logger.info("Training file: " + trainFile);
-			//			logger.info("Dev file: " + devFile);
-			//			logger.info("Dictionary file: " + dicFile);
-			//			logger.info("Model file: " + modelFile);
-			//			logger.info("Iterator number: " + iterator + "\n");
 		}
 		else if (cmd.hasOption("test"))
 		{
@@ -95,17 +90,11 @@ public class ParaOption
 			dicFile = cmd.getOptionValue("dicFile");
 			testFile = cmd.getOptionValue("testFile");
 			resultFile = cmd.getOptionValue("result");
-			
+
 			if (cmd.hasOption("thread"))
 				threadNum = Integer.parseInt(cmd.getOptionValue("thread"));
 			else
 				threadNum = 1;
-			
-
-			//			logger.info("Model file: " + modelFile);
-			//			logger.info("Dictionary file: " + dicFile);
-			//			logger.info("Test file: " + testFile);
-			//			logger.info("Result file: " + resultFile + "\n");
 		}
 		else
 		{
@@ -115,12 +104,4 @@ public class ParaOption
 
 		return flag;
 	}
-
-	//	private void printUsag()
-	//	{
-	//		Logger logger = Logger.getRootLogger();
-	//		logger.info("Usag:");
-	//		logger.info("train: java -jar onlinePosTagger.jar -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file");
-	//		logger.info("test:java -jar onlinePosTagger.jar -test -model model_file -dicFile dic_file -testFile test_file -result result_file\n");
-	//	}
 }

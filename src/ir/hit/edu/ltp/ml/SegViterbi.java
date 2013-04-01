@@ -28,7 +28,7 @@ import ir.hit.edu.ltp.util.OutputStreams;
  */
 public class SegViterbi implements Runnable
 {
-	protected OnlineLabelModel model;
+	public OnlineLabelModel model;
 	protected SegDic segDic;
 	protected Vector<String> allLabel;
 
@@ -57,11 +57,14 @@ public class SegViterbi implements Runnable
 	 * @param predLabel
 	 * @return
 	 */
-	protected double segViterbiDecode(SegInstance inst, Vector<String> predLabel)
+	protected double segViterbiDecode(SegInstance inst, String[] predLabel)
 	{
-		final int senLength = inst.sentence.size();
-		SegItem[][] itemMatrix = new SegItem[senLength][allLabel.size()];
+		final int senLength = inst.sentence.length;
+		final int labelSize = allLabel.size();
+		SegItem[][] itemMatrix = new SegItem[senLength][labelSize];
 
+		StringBuffer bf = new StringBuffer();
+		StringBuffer curLabel = new StringBuffer();
 		for (int i = 0; i < senLength; i++)
 		{
 			if (0 == i)
@@ -69,20 +72,33 @@ public class SegViterbi implements Runnable
 				for (int j = 0; j < allLabel.size(); j++)
 				{
 					SegInstance tmpInstance = new SegInstance(inst);
-					tmpInstance.label.clear();
-					tmpInstance.label.add((String) model.featMap.int2Label.get(j));
 
-					Vector<String> featVec = tmpInstance.extractFeaturesFromInstanceInPosition(0);
+					tmpInstance.label[i] = (String) model.featMap.int2Label.get(j);
 
-					Vector<String> newFeat = new Vector<String>();
-					String curLabel = "/curLabel=" + model.featMap.int2Label.get(j);
+					Vector<String> featVec = tmpInstance.extractFeaturesFromInstanceInPosition(i);
+
+					String[] newFeat = new String[featVec.size()];
+
+					curLabel.delete(0, curLabel.length());
+					curLabel.append("/cL=").append(model.featMap.int2Label.get(j));
+					//					String curLabel = "/cL=" + model.featMap.int2Label.get(j);
+
+					int index = 0;
 					for (String str : featVec)
 					{
-						newFeat.add(str + curLabel);
+						bf.delete(0, bf.length());
+						bf.append(str).append(curLabel);
+						String feat = new String(bf);
+						newFeat[index++] = feat;
+						feat = null;
 					}
 
-					Vector<Integer> intVec = model.featVec2IntVec(newFeat);
+					int[] intVec = model.featVec2IntVec(newFeat);
 					double score = model.getScore(intVec);
+
+					featVec = null;
+					newFeat = null;
+					intVec = null;
 
 					itemMatrix[0][j] = new SegItem(score, tmpInstance);
 				}
@@ -92,25 +108,37 @@ public class SegViterbi implements Runnable
 				for (int j = 0; j < allLabel.size(); j++)
 				{
 					String curLabelStr = (String) model.featMap.int2Label.get(j);
-					String curLabel = "/curLabel=" + curLabelStr;
+
+					curLabel.delete(0, curLabel.length());
+					curLabel.append("/cL=").append(curLabelStr);
 
 					double maxScore = Integer.MIN_VALUE;
 
 					for (int k = 0; k < allLabel.size(); k++)
 					{
 						SegItem item = new SegItem(itemMatrix[i - 1][k]);
-						item.inst.label.add(curLabelStr);
+						item.inst.label[i] = curLabelStr;
 
 						Vector<String> feat = item.inst.extractFeaturesFromInstanceInPosition(i);
 
-						Vector<String> newFeat = new Vector<String>();
+						String[] newFeat = new String[feat.size()];
+						int index = 0;
 						for (String str : feat)
 						{
-							newFeat.add(str + curLabel);
+							bf.delete(0, bf.length());
+							bf.append(str).append(curLabel);
+							String featStr = new String(bf);
+							newFeat[index++] = featStr;
+							featStr = null;
 						}
-						Vector<Integer> intVec = model.featVec2IntVec(newFeat);
+
+						int[] intVec = model.featVec2IntVec(newFeat);
 
 						item.score += model.getScore(intVec);
+
+						feat = null;
+						newFeat = null;
+						intVec = null;
 
 						if (maxScore < item.score)
 						{
@@ -118,6 +146,12 @@ public class SegViterbi implements Runnable
 							itemMatrix[i][j] = item;
 						}
 					}
+				}
+
+				//set some objects which won't be used  to be null and release some memory
+				for (int k = 0; k < itemMatrix[i - 1].length; k++)
+				{
+					itemMatrix[i - 1][k] = null;
 				}
 			}
 		}
@@ -134,9 +168,12 @@ public class SegViterbi implements Runnable
 			}
 		}
 
-		predLabel.clear();
 		for (int i = 0; i < senLength; i++)
-			predLabel.add(itemMatrix[senLength - 1][maxIndex].inst.label.elementAt(i));
+			predLabel[i] = itemMatrix[senLength - 1][maxIndex].inst.label[i];
+
+		//release memory
+		for (int i = 0; i < itemMatrix[senLength - 1].length; i++)
+			itemMatrix[senLength - 1][i] = null;
 
 		return maxScore;
 	}
@@ -149,23 +186,28 @@ public class SegViterbi implements Runnable
 	 * @param segResult
 	 * @throws Exception
 	 */
-	public void segViterbiDecode(String raw_sen, Vector<String> segResult) throws Exception
+	public void seg(String rawSen, Vector<String> segResult) throws Exception
 	{
-		String original_sen = new String(raw_sen);
+		rawSen = rawSen.trim();
+		String originalSen = new String(rawSen);
 
 		//when test a raw sentence, convert it to full-width characters 
-		raw_sen = FullCharConverter.half2Fullchange(raw_sen);
+		rawSen = FullCharConverter.half2Fullchange(rawSen);
 
-		SegInstance inst = new SegInstance(raw_sen, segDic);
-		Vector<String> resultLabel = new Vector<String>();
+		SegInstance inst = new SegInstance(rawSen, segDic);
+		String[] resultLabel = new String[inst.sentence.length];
 		segViterbiDecode(inst, resultLabel);
 
+		inst = null;
+
 		//the content of result string is still the original sentence
-		String[] result = rawSentence2SegSentence(original_sen, resultLabel).split(" ");
+		String[] result = rawSentence2SegSentence(originalSen, resultLabel).split(" ");
+		resultLabel = null;
 
 		segResult.clear();
 		for (int i = 0; i < result.length; i++)
 			segResult.add(result[i]);
+		result = null;
 	}
 
 	/**
@@ -194,19 +236,20 @@ public class SegViterbi implements Runnable
 		BufferedReader br = new BufferedReader(is);
 		PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(resultFile), "UTF-8"));
 
-		String raw_sen;
+		String rawSen;
 		int count = 0;
-		while ((raw_sen = br.readLine()) != null)
+		Vector<String> resultVec = new Vector<String>();
+		while ((rawSen = br.readLine()) != null)
 		{
 			count++;
-			if (count % 200 == 0)
+			if (count % 500 == 0)
 				logger.info("sentence " + count);
 
-			if (raw_sen.trim().equals(""))
+			if (rawSen.trim().equals(""))
 				continue;
 
-			Vector<String> resultVec = new Vector<String>();
-			segViterbiDecode(raw_sen, resultVec);
+			resultVec.clear();
+			seg(rawSen, resultVec);
 
 			String result = "";
 			for (String str : resultVec)
@@ -214,6 +257,7 @@ public class SegViterbi implements Runnable
 			writer.write(result.trim() + "\n");
 		}
 
+		br.close();
 		writer.flush();
 		writer.close();
 
@@ -258,6 +302,9 @@ public class SegViterbi implements Runnable
 		for (int i = 0; i < threadNum; i++)
 			threadVec[i].join();
 
+		br.close();
+		wr.close();
+
 		logger.info("test finish!");
 		long endTime = System.currentTimeMillis();
 		logger.info("test time: " + (endTime - startTime) / 1000 + " s" + "\n");
@@ -271,22 +318,28 @@ public class SegViterbi implements Runnable
 	 * @return
 	 * @throws Exception
 	 */
-	private String rawSentence2SegSentence(String raw_sen, Vector<String> label) throws Exception
+	private String rawSentence2SegSentence(String rawSen, String[] label) throws Exception
 	{
-		if (raw_sen.length() != label.size())
+		if (rawSen.length() != label.length)
 		{
 			throw new Exception("the raw sentence length is not same to label size!");
 		}
 
-		String result = raw_sen.charAt(0) + "";
-		for (int i = 1; i < label.size(); i++)
+		StringBuffer result = new StringBuffer();
+		result.append(rawSen.charAt(0));
+
+		for (int i = 1; i < label.length; i++)
 		{
-			if (label.elementAt(i).equals("B") || label.elementAt(i).equals("S"))
-				result += " " + raw_sen.charAt(i);
+			if (label[i].equals("B") || label[i].equals("S"))
+				result.append(" ").append(rawSen.charAt(i));
 			else
-				result += raw_sen.charAt(i);
+				result.append(rawSen.charAt(i));
 		}
-		return result;
+
+		String resultStr = new String(result);
+		result = null;
+
+		return resultStr;
 	}
 
 	/**
@@ -314,19 +367,25 @@ public class SegViterbi implements Runnable
 			String[] gold = line.split(" ");
 			goldTotal += gold.length;
 
-			String raw_sen = "";
+			StringBuffer rawSen = new StringBuffer();
 			for (int i = 0; i < gold.length; i++)
-				raw_sen += gold[i];
+				rawSen.append(gold[i]);
+			String rawSenStr = new String(rawSen);
+			rawSen = null;
 
 			Vector<String> predResult = new Vector<String>();
-			segViterbiDecode(raw_sen, predResult);
+			seg(rawSenStr, predResult);
 
-			String segResult = "";
+			StringBuffer segResult = new StringBuffer();
 			for (String str : predResult)
-				segResult += str + " ";
-			wr.write(segResult.trim() + "\n");
+				segResult.append(str).append(" ");
 
-			String[] result = segResult.split(" ");
+			String resultStr = new String(segResult);
+			segResult = null;
+
+			wr.write(resultStr.trim() + "\n");
+
+			String[] result = resultStr.split(" ");
 			predTotal += result.length;
 
 			int goldIndex = 0, predIndex = 0;
@@ -364,6 +423,9 @@ public class SegViterbi implements Runnable
 				}
 			}
 
+			result = null;
+			gold = null;
+
 		}
 
 		wr.flush();
@@ -394,9 +456,14 @@ public class SegViterbi implements Runnable
 
 		segDic = new SegDic();
 		segDic.loadSegDic(dicFile);
+		logger.info("load dictionary time: " + (System.currentTimeMillis() - startTime) / 1000 + " s");
+
 		CharType.loadCharType();
 
+		long modelStartTime = System.currentTimeMillis();
 		model = OnlineLabelModel.loadModel(modelFile);
+		logger.info("load model time: " + (System.currentTimeMillis() - modelStartTime) / 1000 + " s");
+
 		allLabel = new Vector<String>();
 		for (int i = 0; i < model.featMap.int2Label.size(); i++)
 			allLabel.add((String) model.featMap.int2Label.get(i));
@@ -410,27 +477,29 @@ public class SegViterbi implements Runnable
 	public void run()
 	{
 		// TODO Auto-generated method stub
-		String raw_sen;
+		String rawSen;
 
 		try
 		{
 			Logger logger = Logger.getLogger("seg");
-			while ((raw_sen = br.readLine()) != null)
+			while ((rawSen = br.readLine()) != null)
 			{
 				sentenceNum++;
-				if (0 == sentenceNum % 300)
+				if (0 == sentenceNum % 500)
 					logger.info("sentence " + sentenceNum);
-				if (raw_sen.trim().equals(""))
+				if (rawSen.trim().equals(""))
 					continue;
 
 				Vector<String> resultVec = new Vector<String>();
-				segViterbiDecode(raw_sen.trim(), resultVec);
+				seg(rawSen.trim(), resultVec);
 
-				String result = "";
+				StringBuffer result = new StringBuffer();
 				for (String str : resultVec)
-					result += str + " ";
+					result.append(str).append(" ");
 
-				wr.writerLine(result.trim() + "\n");
+				String str = new String(result);
+				result = null;
+				wr.writerLine(str.trim() + "\n");
 			}
 		} catch (IOException e)
 		{

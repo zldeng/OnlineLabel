@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.util.Vector;
 
 import ir.hit.edu.ltp.basic.PosInstance;
-import ir.hit.edu.ltp.util.FullCharConverter;
 
 /**
  * read POS instance from file
@@ -40,15 +39,19 @@ public class PosIO
 			if (line.trim().equals(""))
 				continue;
 
-			String[] token = line.trim().split(" ");
-			Vector<String> words = new Vector<String>();
-			Vector<String> label = new Vector<String>();
+			line = line.trim().replaceAll("\\t{1,}", " ");
+			line = line.replaceAll("\\s{2,}", " ");
 
-			for (String str : token)
+			String[] token = line.split(" ");
+			String[] words = new String[token.length];
+			String[] label = new String[token.length];
+
+			for (int i = 0; i < token.length; i++)
 			{
-				String[] tmp = str.split("_");
-				words.add(FullCharConverter.half2Fullchange(tmp[0]));
-				label.add(tmp[1]);
+				String[] tmp = token[i].split("_");
+				//				words[i] = FullCharConverter.half2Fullchange(tmp[0]);
+				words[i] = tmp[0];
+				label[i] = tmp[1];
 
 				if (!allLabel.contains(tmp[1]))
 					allLabel.add(tmp[1]);

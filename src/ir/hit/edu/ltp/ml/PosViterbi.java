@@ -15,7 +15,6 @@ import ir.hit.edu.ltp.basic.*;
 import ir.hit.edu.ltp.model.*;
 import ir.hit.edu.ltp.util.CharType;
 import ir.hit.edu.ltp.dic.*;
-import ir.hit.edu.ltp.util.FullCharConverter;
 import ir.hit.edu.ltp.util.InputStreams;
 import ir.hit.edu.ltp.util.OutputStreams;
 
@@ -46,45 +45,49 @@ public class PosViterbi implements Runnable
 	public PosViterbi()
 	{}
 
-	public double posViterbiDecode(Vector<String> originSentence, Vector<String> predLabel) throws UnsupportedEncodingException
-	{		
-		Vector<String> sentence = new Vector<String>();
-		for (String str: originSentence)
-			sentence.add(FullCharConverter.half2Fullchange(str));
-				
-		final int wordsNum = sentence.size();
+	public double pos(String[] sentence, Vector<String> predLabel) throws UnsupportedEncodingException
+	{
+		final int wordsNum = sentence.length;
 		Vector<Vector<PosItem>> itemVector = new Vector<Vector<PosItem>>();
-		for (int i = 0; i < sentence.size(); i++)
+		for (int i = 0; i < wordsNum; i++)
 			itemVector.add(new Vector<PosItem>());
+
+		StringBuffer bf = new StringBuffer();
 
 		for (int i = 0; i < wordsNum; ++i)
 		{
-			String word = sentence.elementAt(i);
+			String word = sentence[i];
+
+			// if the word appears in POS dictionary, just give it the
+			// POS in dic, or try all possible POS
+			Vector<String> candidatePos = posDic.containsKey(word) ? posDic.getPos(word) : allLabel;
 
 			// current word is the the first word in the sentence
 			if (i == 0)
 			{
-				// if the word appears in POS dictionary, just give it the
-				// POS in dic, or try all possible POS
-				Vector<String> candidatePos = posDic.containsKey(word) ? posDic.getPos(word) : allLabel;
-
 				for (int p = 0; p < candidatePos.size(); p++)
 				{
 					String pos = candidatePos.elementAt(p);
 
-					Vector<String> tmpLabel = new Vector<String>();
-					tmpLabel.add(pos);
+					String[] tmpLabel = new String[wordsNum];
+					tmpLabel[i] = pos;
 					PosInstance inst = new PosInstance(sentence, tmpLabel);
 					Vector<String> feature = inst.extractFeaturesFromInstanceInPosition(0, posDic);
 
-					String curLabel = "/curLabel=" + pos;
-					Vector<String> newFeat = new Vector<String>();
-					for (int m = 0; m < feature.size(); m++)
+					String curLabel = "/cL=" + pos;
+					String[] newFeat = new String[feature.size()];
+
+					int m = 0;
+					for (String oldFeat : feature)
 					{
-						newFeat.add(feature.elementAt(m) + curLabel);
+						bf.delete(0, bf.length());
+						bf.append(oldFeat).append(curLabel);
+						String feat = new String(bf);
+						newFeat[m++] = feat;
+						feat = null;
 					}
 
-					Vector<Integer> featInt = model.featVec2IntVec(newFeat);
+					int[] featInt = model.featVec2IntVec(newFeat);
 					double score = model.getScore(featInt);
 
 					PosItem item = new PosItem(score, sentence, tmpLabel);
@@ -93,46 +96,50 @@ public class PosViterbi implements Runnable
 			}
 			else
 			{
-				Vector<String> candidatePos = posDic.containsKey(word) ? posDic.getPos(word) : allLabel;
+				int preNum = itemVector.elementAt(i - 1).size();
 				for (int j = 0; j < candidatePos.size(); j++)
 				{
 					String newPos = candidatePos.elementAt(j);
 					double maxScore = Integer.MIN_VALUE;
 
-					PosItem initItem = new PosItem(maxScore, sentence, new Vector<String>());
-					itemVector.elementAt(i).add(initItem);
-
-					int preNum = itemVector.elementAt(i - 1).size();
+					PosItem maxItem = null;
 					for (int k = 0; k < preNum; k++)
 					{
-						@SuppressWarnings("unchecked")
-						Vector<String> preLabel = (Vector<String>) itemVector.elementAt(i - 1).elementAt(k).inst.label
-								.clone();
-						preLabel.add(newPos);
+						String[] preLabel = itemVector.elementAt(i - 1).elementAt(k).inst.label.clone();
+						preLabel[i] = newPos;
 
 						PosInstance tmpInst = new PosInstance(sentence, preLabel);
 
 						Vector<String> featVec = tmpInst.extractFeaturesFromInstanceInPosition(i, posDic);
 
-						String curLabel = "/curLabel=" + newPos;
-						Vector<String> newFeat = new Vector<String>();
-						for (int m = 0; m < featVec.size(); m++)
+						String curLabel = "/cL=" + newPos;
+						String[] newFeat = new String[featVec.size()];
+						int m = 0;
+						for (String oldFeat : featVec)
 						{
-							newFeat.add(featVec.elementAt(m) + curLabel);
+							bf.delete(0, bf.length());
+							bf.append(oldFeat).append(curLabel);
+							String feat = new String(bf);
+							newFeat[m++] = feat;
+							feat = null;
 						}
 
-						Vector<Integer> intVec = model.featVec2IntVec(newFeat);
+						int[] intVec = model.featVec2IntVec(newFeat);
 
 						double tmpScore = itemVector.elementAt(i - 1).get(k).score + model.getScore(intVec);
 
 						if (maxScore < tmpScore)
 						{
 							maxScore = tmpScore;
-							PosItem item = new PosItem(tmpScore, sentence, preLabel);
-							itemVector.elementAt(i).set(j, item);
+							maxItem = new PosItem(tmpScore, sentence, preLabel);
 						}
 					}
+
+					itemVector.elementAt(i).add(maxItem);
 				}
+				for (int k = 0; k < preNum; k++)
+					itemVector.elementAt(i - 1).set(k, null);
+				itemVector.set(i - 1, null);
 			}
 		}
 
@@ -148,11 +155,13 @@ public class PosViterbi implements Runnable
 			}
 		}
 
-		Vector<String> result = itemVector.elementAt(wordsNum - 1).get(maxIndex).inst.label;
-
+		String[] result = itemVector.elementAt(wordsNum - 1).get(maxIndex).inst.label;
 		predLabel.clear();
-		for (int i = 0; i < result.size(); i++)
-			predLabel.add(result.elementAt(i));
+		for (int i = 0; i < result.length; i++)
+			predLabel.add(result[i]);
+
+		for (int i = 0; i < itemVector.elementAt(wordsNum - 1).size(); i++)
+			itemVector.elementAt(wordsNum - 1).set(i, null);
 
 		return tmpMaxScore;
 	}
@@ -195,16 +204,13 @@ public class PosViterbi implements Runnable
 			if (line.trim().equals(""))
 				continue;
 			String[] sentence = line.trim().split(" ");
-			Vector<String> words = new Vector<String>();
-			for (int i = 0; i < sentence.length; ++i)
-				words.add(sentence[i].trim());
 
 			Vector<String> result = new Vector<String>();
 
-			posViterbiDecode(words, result);
+			pos(sentence, result);
 			String resultStr = "";
-			for (int i = 0; i < words.size(); i++)
-				resultStr += words.elementAt(i) + "_" + result.elementAt(i) + " ";
+			for (int i = 0; i < sentence.length; i++)
+				resultStr += sentence[i] + "_" + result.elementAt(i) + " ";
 
 			writer.write(resultStr.trim() + "\n");
 		}
@@ -284,36 +290,36 @@ public class PosViterbi implements Runnable
 				continue;
 
 			String[] token = line.trim().split(" ");
-			Vector<String> sentence = new Vector<String>();
-			Vector<String> goldLabel = new Vector<String>();
+			String[] sentence = new String[token.length];
+			String[] goldLabel = new String[token.length];
 
 			for (int i = 0; i < token.length; i++)
 			{
 				String[] pair = token[i].split("_");
-				sentence.add(pair[0]);
-				goldLabel.add(pair[1]);
+				sentence[i] = pair[0];
+				goldLabel[i] = pair[1];
 			}
 
 			Vector<String> predLabel = new Vector<String>();
-			posViterbiDecode(sentence, predLabel);
+			pos(sentence, predLabel);
 
 			String str = "";
-			for (int i = 0; i < sentence.size(); i++)
+			for (int i = 0; i < sentence.length; i++)
 			{
-				str += sentence.elementAt(i) + "_" + predLabel.elementAt(i) + " ";
+				str += sentence[i] + "_" + predLabel.elementAt(i) + " ";
 			}
 			writer.write(str.trim() + "\n");
 
-			if (goldLabel.size() != predLabel.size())
+			if (goldLabel.length != predLabel.size())
 			{
 				throw new Exception("When test, the size of goldLabel is not equal to predLabel!");
 			}
 
-			total += goldLabel.size();
+			total += goldLabel.length;
 
 			for (int i = 0; i < predLabel.size(); i++)
 			{
-				if (goldLabel.elementAt(i).trim().equals(predLabel.elementAt(i).trim()))
+				if (goldLabel[i].equals(predLabel.elementAt(i)))
 					correct++;
 			}
 		}
@@ -370,17 +376,14 @@ public class PosViterbi implements Runnable
 				if (line.trim().equals(""))
 					continue;
 
+				line = line.replaceAll("\\s{2,}", " ");
 				String[] sentence = line.trim().split(" ");
-				Vector<String> words = new Vector<String>();
-				for (int i = 0; i < sentence.length; ++i)
-					words.add(sentence[i].trim());
-
 				Vector<String> result = new Vector<String>();
 
-				posViterbiDecode(words, result);
+				pos(sentence, result);
 				String resultStr = "";
-				for (int i = 0; i < words.size(); i++)
-					resultStr += words.elementAt(i) + "_" + result.elementAt(i) + " ";
+				for (int i = 0; i < sentence.length; i++)
+					resultStr += sentence[i] + "_" + result.elementAt(i) + " ";
 
 				wr.writerLine(resultStr.trim() + "\n");
 			}

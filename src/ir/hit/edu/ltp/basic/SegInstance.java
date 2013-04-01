@@ -17,17 +17,16 @@ import java.util.Vector;
  */
 public class SegInstance
 {
-	public Vector<String> sentence;
-	public Vector<String> charType;
-	public Vector<Integer> begin;
-	public Vector<Integer> middle;
-	public Vector<Integer> end;
-	public Vector<String> label;
+	public String[] sentence;
+	public int[] charType;
+	public int[] begin;
+	public int[] middle;
+	public int[] end;
+	public String[] label;
 
 	//we restrict max word length in dictionary to  8 
-	final static int MAX_LENGTH = 8;
+	final static int MAX_LENGTH = 6;
 
-	@SuppressWarnings("unchecked")
 	public SegInstance(SegInstance inst)
 	{
 		this.sentence = inst.sentence;
@@ -35,7 +34,7 @@ public class SegInstance
 		this.begin = inst.begin;
 		this.middle = inst.middle;
 		this.end = inst.end;
-		this.label = (Vector<String>) inst.label.clone();
+		this.label = inst.label.clone();
 	}
 
 	/**
@@ -46,17 +45,18 @@ public class SegInstance
 	 * @param segDic
 	 * @throws UnsupportedEncodingException
 	 */
-	public SegInstance(String raw_sen, SegDic segDic) throws UnsupportedEncodingException
+	public SegInstance(String rawSen, SegDic segDic) throws UnsupportedEncodingException
 	{
-		this.sentence = new Vector<String>();
-		this.charType = new Vector<String>();
-		this.begin = new Vector<Integer>();
-		this.middle = new Vector<Integer>();
-		this.end = new Vector<Integer>();
-		this.label = new Vector<String>();
+		final int length = rawSen.trim().length();
+		this.sentence = new String[length];
+		this.charType = new int[length];
+		this.begin = new int[length];
+		this.middle = new int[length];
+		this.end = new int[length];
+		this.label = new String[length];
 
-		raw_sen = FullCharConverter.half2Fullchange(raw_sen);
-		getInfor(raw_sen, segDic);
+		rawSen = FullCharConverter.half2Fullchange(rawSen);
+		getInfor(rawSen, segDic);
 
 	}
 
@@ -71,35 +71,39 @@ public class SegInstance
 	 */
 	public SegInstance(String[] sen, SegDic segDic) throws UnsupportedEncodingException
 	{
-		this.sentence = new Vector<String>();
-		this.charType = new Vector<String>();
-		this.begin = new Vector<Integer>();
-		this.middle = new Vector<Integer>();
-		this.end = new Vector<Integer>();
-		this.label = new Vector<String>();
 
-		String raw_sen = "";
+		StringBuffer rawSen = new StringBuffer();
 		for (String str : sen)
 		{
-			raw_sen += str;
+			rawSen.append(str);
 		}
 
+		final int length = rawSen.length();
+		this.sentence = new String[length];
+		this.charType = new int[length];
+		this.begin = new int[length];
+		this.middle = new int[length];
+		this.end = new int[length];
+		this.label = new String[length];
+
 		//change half-width characters to full-width characters
-		raw_sen = FullCharConverter.half2Fullchange(raw_sen);
+		String fullrawSen = FullCharConverter.half2Fullchange(new String(rawSen));
 
 		//initialize basic information
-		getInfor(raw_sen, segDic);
+		getInfor(fullrawSen, segDic);
 
-		for (int i = 0; i < sen.length; i++)
+		//		System.out.println("lable size: " + label.length);
+		for (int i = 0, j = 0; i < sen.length; i++)
 		{
+			//			System.out.println(sen[i] + " " + j);
 			if (sen[i].trim().length() == 1)
-				label.add("S");
+				label[j++] = "S";
 			else
 			{
-				label.add("B");
-				for (int j = 1; j < sen[i].length() - 1; j++)
-					label.add("M");
-				label.add("E");
+				label[j++] = "B";
+				for (int k = 1; k < sen[i].length() - 1; k++)
+					label[j++] = "M";
+				label[j++] = "E";
 			}
 		}
 	}
@@ -111,52 +115,43 @@ public class SegInstance
 	 * @param raw_sen
 	 * @param segDic
 	 */
-	private void getInfor(String raw_sen, SegDic segDic)
+	private void getInfor(String rawSen, SegDic segDic)
 	{
-		for (int i = 0; i < raw_sen.length(); i++)
+		for (int i = 0; i < rawSen.length(); i++)
 		{
-			begin.add(0);
-			middle.add(0);
-			end.add(0);
-		}
-
-		for (int i = 0; i < raw_sen.length(); i++)
-		{
-			String ch = raw_sen.charAt(i) + "";
-			sentence.add(ch);
+			String ch = rawSen.charAt(i) + "";
+			sentence[i] = ch;
 
 			//1 letter
 			//2 digit
 			//3 punctuation
 			//4 other
-			String type = "";
+			int type = 4;
 			if (CharType.letterSet.contains(ch))
-				type = "1";
+				type = 1;
 			else if (CharType.digitSet.contains(ch))
-				type = "2";
+				type = 2;
 			else if (CharType.punctSet.contains(ch))
-				type = "3";
-			else
-				type = "4";
-			charType.add(type);
+				type = 3;
+			charType[i] = type;
 
 			int maxPre = 0;
-			for (int len = 1; i + len <= raw_sen.length() && len < MAX_LENGTH; len++)
+			for (int len = 1; i + len <= rawSen.length() && len < MAX_LENGTH; len++)
 			{
-				String subStr = raw_sen.substring(i, i + len);
-				
+				String subStr = rawSen.substring(i, i + len);
+
 				if (segDic.containsKey(subStr) && (maxPre < len))
 				{
 					maxPre = len;
 				}
 			}
-			begin.set(i, maxPre);
+			begin[i] = maxPre;
 
-			if (maxPre > 0 && end.elementAt(i + maxPre - 1) < maxPre)
-				end.set(i + maxPre - 1, maxPre);
+			if (maxPre > 0 && end[i + maxPre - 1] < maxPre)
+				end[i + maxPre - 1] = maxPre;
 			for (int k = i + 1; k < i + maxPre - 1; k++)
-				if (middle.elementAt(k) < maxPre)
-					middle.set(k, maxPre);
+				if (middle[k] < maxPre)
+					middle[k] = maxPre;
 		}
 	}
 
@@ -170,31 +165,68 @@ public class SegInstance
 	{
 		Vector<String> featVec = new Vector<String>();
 
-		String pre2Char = position >= 2 ? sentence.elementAt(position - 2) : "_BOC_";
-		String preChar = position >= 1 ? sentence.elementAt(position - 1) : "_BOC_";
-		String curChar = sentence.elementAt(position);
-		String nextChar = position < sentence.size() - 1 ? sentence.elementAt(position + 1) : "_EOC_";
-		String next2Char = position < sentence.size() - 2 ? sentence.elementAt(position + 2) : "_EOC_";
+		String pre2Char = position >= 2 ? sentence[position - 2] : "_B_";
+		String preChar = position >= 1 ? sentence[position - 1] : "_B_";
+		String curChar = sentence[position];
+		String nextChar = position < sentence.length - 1 ? sentence[position + 1] : "_E_";
+		String next2Char = position < sentence.length - 2 ? sentence[position + 2] : "_E_";
 
+		StringBuffer bf = new StringBuffer();
 		//char unigram feature
-		featVec.add("UCT[-2,0]=" + pre2Char);
-		featVec.add("UCT[-1,0]=" + preChar);
-		featVec.add("UCT[0,0]=" + curChar);
-		featVec.add("UCT[1,0]=" + nextChar);
-		featVec.add("UCT[2,0]=" + next2Char);
+		bf.delete(0, bf.length());
+		bf.append("U[-2,0]=").append(pre2Char);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("U[-1,0]=").append(preChar);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("U[0,0]=").append(curChar);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("U[1,0]=").append(nextChar);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("U[2,0]=").append(next2Char);
+		featVec.add(new String(bf));
 
 		//char bigram feature
-		featVec.add("BCT[-2,-1]=" + pre2Char + "/" + preChar);
-		featVec.add("BCT[-1,0]=" + preChar + "/" + curChar);
-		featVec.add("BCT[0,1]=" + curChar + "/" + nextChar);
-		featVec.add("BCT[1,2]=" + nextChar + "/" + next2Char);
+		bf.delete(0, bf.length());
+		bf.append("B[-2,-1]=").append(pre2Char).append("/").append(preChar);
+		featVec.add(new String(bf));
 
-		featVec.add("BCT[-2,0]=" + pre2Char + "/" + curChar);
-		featVec.add("BCT[-1,1]=" + preChar + "/" + nextChar);
-		featVec.add("BCT[0,2]=" + curChar + "/" + next2Char);
+		bf.delete(0, bf.length());
+		bf.append("B[-1,0]=").append(preChar).append("/").append(curChar);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("B[0,1]=").append(curChar).append("/").append(nextChar);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("B[1,2]=").append(nextChar).append("/").append(next2Char);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("B[-2,0]=").append(pre2Char).append("/").append(curChar);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("B[-1,1]=").append(preChar).append("/").append(nextChar);
+		featVec.add(new String(bf));
+
+		bf.delete(0, bf.length());
+		bf.append("B[0,2]=").append(curChar).append("/").append(next2Char);
+		featVec.add(new String(bf));
 
 		//char trigram feature
-		featVec.add("TCT[-1,0]=" + preChar + "/" + curChar + "/" + nextChar);
+		bf.delete(0, bf.length());
+		bf.append("T[-1,0]=").append(preChar).append("/").append(curChar).append("/").append(nextChar);
+		featVec.add(new String(bf));
+		bf = null;
 
 		if (preChar.equals(curChar))
 			featVec.add("-1AABBT");
@@ -209,34 +241,34 @@ public class SegInstance
 			featVec.add("0ABABT");
 
 		//char type unigram feature
-		featVec.add("charType=" + charType.elementAt(position));
-		
+		featVec.add("cT=" + charType[position]);
+
 		//char type trigram feature
-		String trigram = "";
+		StringBuffer trigram = new StringBuffer();
 
 		if (position > 0)
-			trigram += charType.elementAt(position-1);
+			trigram.append(charType[position - 1]);
 		else
-			trigram += "_BT_";
-		
-		trigram += "/" + charType.elementAt(position);
-		
-		if (position < sentence.size() - 1)
-			trigram += "/" + charType.elementAt(position + 1);
+			trigram.append("_BT_");
+
+		trigram.append("/" + charType[position]);
+
+		if (position < sentence.length - 1)
+			trigram.append("/" + charType[position + 1]);
 		else
-			trigram += "/_EL_";
-		
-		featVec.add("charTypeTir=" + trigram);
-		
+			trigram.append("/_EL_");
+
+		featVec.add("cTT=" + trigram);
+
 		//dictionary feature
-		featVec.add("begin=" + begin.elementAt(position));
-		featVec.add("middle=" + middle.elementAt(position));
-		featVec.add("end=" + end.elementAt(position));
+		featVec.add("b=" + begin[position]);
+		featVec.add("m=" + middle[position]);
+		featVec.add("e=" + end[position]);
 
 		//label bigram feature
-		String preLabel = position > 0 ? label.elementAt(position - 1) : "_BL_";
+		String preLabel = position > 0 ? label[position - 1] : "_BL_";
 
-		featVec.add("BiLabels=" + preLabel);
+		featVec.add("BL=" + preLabel);
 
 		return featVec;
 	}

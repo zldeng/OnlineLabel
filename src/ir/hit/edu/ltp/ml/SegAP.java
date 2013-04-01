@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
-public class SegAP extends SegViterbi implements Callable<double[]>
+public class SegAP extends SegViterbi implements Callable<float[]>
 {
 	private Vector<SegInstance> instanceList;
 	private Vector<Pipe> segPipeList;
@@ -94,8 +94,6 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 		}
 
 		double[] total = new double[model.parameter.length];
-		for (int i = 0; i < total.length; i++)
-			total[i] = 0;
 
 		for (int it = 0; it < iterator; ++it)
 		{
@@ -124,34 +122,34 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 				int inst = intList.indexOf(q);
 
 				SegInstance tmpInst = instanceList.elementAt(inst);
-				Vector<String> predLabel = new Vector<String>();
+				String[] predLabel = new String[tmpInst.label.length];
 
 				segViterbiDecode(tmpInst, predLabel);
 
-				if (predLabel.size() != tmpInst.sentence.size())
-				{
-					logger.error("gold size: " + tmpInst.sentence.size() + " pred size: " + predLabel.size());
-					throw new Exception("When decoding " + (inst + 1)
-							+ " instance , the number of result label is not the same to the number of word!");
-				}
-
 				if (predLabel.equals(instanceList.elementAt(inst).label))
+				{
+					tmpInst = null;
+					predLabel = null;
 					continue;
-
+				}
 				SegInstance predInstance = new SegInstance(tmpInst);
-				predInstance.label.clear();
-				for (int i = 0; i < predLabel.size(); i++)
-					predInstance.label.add(predLabel.elementAt(i));
+				predInstance.label = predLabel;
+
+				tmpInst = null;
+				predLabel = null;
 
 				Pipe predPipe = new Pipe(predInstance, model.featMap.feature2Int);
 
-				if (predPipe.feature.size() != segPipeList.elementAt(inst).feature.size())
+				if (predPipe.feature.length != segPipeList.elementAt(inst).feature.length)
 				{
 					throw new Exception(
 							"When decoding, the feature number of result label is not the same to the gold number!");
 				}
 
 				model.update(segPipeList.elementAt(inst).feature, predPipe.feature);
+
+				predPipe = null;
+
 				model.addToTotal(total);
 
 			}
@@ -161,7 +159,7 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap);
 			for (int i = 0; i < tmpModel.parameter.length; i++)
 			{
-				tmpModel.parameter[i] = total[i] / (instanceList.size() * (it + 1));
+				tmpModel.parameter[i] = (float) (total[i] / (instanceList.size() * (it + 1)));
 			}
 
 			SegAP tmpSeg = new SegAP(tmpModel, segDic, allLabel);
@@ -187,6 +185,9 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 				logger.info("the evaluation result of conpressed model P: " + precision + " R: " + recall + " F: "
 						+ (2 * precision * recall) / (precision + recall) + "\n");
 			}
+
+			tmpModel = null;
+			tmpSeg = null;
 
 		}
 
@@ -267,7 +268,7 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 			logger.info("start iterator " + it + " ...");
 
 			ExecutorService exec = Executors.newCachedThreadPool();
-			ArrayList<Future<double[]>> results = new ArrayList<Future<double[]>>();
+			ArrayList<Future<float[]>> results = new ArrayList<Future<float[]>>();
 
 			CountDownLatch finishSigle = new CountDownLatch(threadNum);
 			//create threadNum threads and submit them
@@ -276,7 +277,7 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 				//because the PosAP extends from PosViterbi and PosViterbi has implemented Runnable interface
 				//in ExecutorService, there are two submit methods, one uses a Runnable task as parameter and another uses a Callable task as parameter
 				//so we must use a cast to tell submit that we want use the submit which use a Callable parameter
-				results.add(exec.submit((Callable<double[]>) new SegAP(model, segDic, allLabel, id, instanceList,
+				results.add(exec.submit((Callable<float[]>) new SegAP(model, segDic, allLabel, id, instanceList,
 						segPipeList, finishSigle)));
 			}
 
@@ -284,13 +285,13 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 			finishSigle.await();
 			logger.info("sub-threads are all finished!");
 			logger.info("merge parameter...");
-			Vector<double[]> paraVec = new Vector<double[]>();
+			Vector<float[]> paraVec = new Vector<float[]>();
 
-			for (Future<double[]> fs : results)
+			for (Future<float[]> fs : results)
 			{
 				paraVec.add(fs.get());
 			}
-			double[] tmpPara = MyTools.mixParameter(paraVec);
+			float[] tmpPara = MyTools.mixParameter(paraVec);
 			logger.info("merge parameter over!");
 
 			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara);
@@ -328,7 +329,7 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 		logger.info("training time: " + (endTime - startTime) / 1000 + " s\n");
 	}
 
-	private double[] trainWithSubInstance() throws Exception
+	private float[] trainWithSubInstance() throws Exception
 	{
 		Logger logger = Logger.getLogger("seg");
 		logger.info("training in thread " + id + " start...");
@@ -354,31 +355,17 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 				logger.info("thread " + id + ": " + (instIndex - startIndex + 1));
 
 			SegInstance tmpInst = instanceList.elementAt(instIndex);
-			Vector<String> predLabel = new Vector<String>();
+			String[] predLabel = new String[tmpInst.label.length];
 
 			segViterbiDecode(tmpInst, predLabel);
-
-			if (predLabel.size() != tmpInst.sentence.size())
-			{
-				logger.error("gold size: " + tmpInst.sentence.size() + " pred size: " + predLabel.size());
-				throw new Exception("When decoding " + (instIndex + 1)
-						+ " instance , the number of result label is not the same to the number of word!");
-			}
 
 			if (predLabel.equals(instanceList.elementAt(instIndex).label))
 				continue;
 
 			SegInstance predInstance = new SegInstance(tmpInst);
-			predInstance.label.clear();
 			predInstance.label = predLabel;
 
 			Pipe predPipe = new Pipe(predInstance, model.featMap.feature2Int);
-
-			if (predPipe.feature.size() != segPipeList.elementAt(instIndex).feature.size())
-			{
-				throw new Exception(
-						"When decoding, the feature number of result label is not the same to the gold number!");
-			}
 
 			model.update(segPipeList.elementAt(instIndex).feature, predPipe.feature);
 		}
@@ -391,7 +378,7 @@ public class SegAP extends SegViterbi implements Callable<double[]>
 	}
 
 	@Override
-	public double[] call() throws Exception
+	public float[] call() throws Exception
 	{
 		// TODO Auto-generated method stub
 		return trainWithSubInstance();

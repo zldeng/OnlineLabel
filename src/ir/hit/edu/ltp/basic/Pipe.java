@@ -1,14 +1,16 @@
 package ir.hit.edu.ltp.basic;
 
+import gnu.trove.map.hash.THashMap;
 import ir.hit.edu.ltp.dic.PosDic;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
 /**
  * class for a Pipe
- * a Pipe is a representation of a instance by mapping string features to 
+ * a Pipe is a representation of a instance by mapping string features to
  * int features
  * 
  * @author dzl
@@ -16,13 +18,13 @@ import org.apache.log4j.Logger;
  */
 public class Pipe
 {
-	public Vector<Integer> feature;
-	public Vector<String> label;
+	public int[] feature;
+	public String[] label;
 
-	public Pipe()
+	public Pipe(int[] feature, String[] label)
 	{
-		feature = new Vector<Integer>();
-		label = new Vector<String>();
+		this.feature = feature;
+		this.label = label;
 	}
 
 	/**
@@ -36,36 +38,57 @@ public class Pipe
 	 *            POS dictionary
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
-	public Pipe(PosInstance inst, gnu.trove.TObjectIntHashMap feature2Int, PosDic posDic) throws Exception
+	public Pipe(PosInstance inst, THashMap<String, Integer> feature2Int, PosDic posDic) throws Exception
 	{
-		this.label = (Vector<String>) inst.label.clone();
-		this.feature = new Vector<Integer>();
+		this.label = inst.label;
 
-		for (int i = 0; i < label.size(); ++i)
+		ArrayList<Integer> featList = new ArrayList<Integer>();
+
+		Vector<String> featureInPositionI = new Vector<String>();
+		Vector<String> newFeat = new Vector<String>();
+		StringBuffer curLabel = new StringBuffer();
+
+		for (int i = 0; i < label.length; ++i)
 		{
-			Vector<String> featureInPositionI = inst.extractFeaturesFromInstanceInPosition(i, posDic);
+			featureInPositionI = null;
+			featureInPositionI = inst.extractFeaturesFromInstanceInPosition(i, posDic);
 
-			String curLabel = "/curLabel=" + inst.label.elementAt(i);
-			Vector<String> newFeat = new Vector<String>();
-			for (int m = 0; m < featureInPositionI.size(); m++)
+			curLabel.delete(0, curLabel.length());
+			curLabel.append("/cL=");
+			curLabel.append(inst.label[i]);
+
+			newFeat = new Vector<String>();
+			StringBuffer bf = new StringBuffer();
+			for (String feat : featureInPositionI)
 			{
-				newFeat.add(featureInPositionI.elementAt(m) + curLabel);
+				bf.delete(0, bf.length());
+				bf.append(feat).append(curLabel);
+				newFeat.add(new String(bf));
 			}
 
 			for (int j = 0; j < newFeat.size(); ++j)
 			{
 				if (feature2Int.containsKey(newFeat.elementAt(j)))
-					feature.add(feature2Int.get(newFeat.elementAt(j)));
+					featList.add(feature2Int.get(newFeat.elementAt(j)));
 				else
 				{
 					// in training, all features should appear in feature space
 					Logger logger = Logger.getLogger("pos");
 					logger.error("In training, features:" + newFeat.elementAt(j) + "dosen't appear in feature space");
+					System.out.println("FEAT: " + newFeat.elementAt(j));
 					throw new Exception("feature can't find in feature map!");
 				}
 			}
+
+			featureInPositionI = null;
+			newFeat = null;
 		}
+
+		this.feature = new int[featList.size()];
+		for (int i = 0; i < featList.size(); i++)
+			feature[i] = featList.get(i);
+
+		featList = null;
 	}
 
 	/**
@@ -77,26 +100,37 @@ public class Pipe
 	 *            feature map
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
-	public Pipe(SegInstance inst, gnu.trove.TObjectIntHashMap feature2Int) throws Exception
+	public Pipe(SegInstance inst, THashMap<String, Integer> feature2Int) throws Exception
 	{
-		this.label = (Vector<String>) inst.label.clone();
-		this.feature = new Vector<Integer>();
+		this.label = inst.label;
 
-		for (int i = 0; i < label.size(); ++i)
+		ArrayList<Integer> featList = new ArrayList<Integer>();
+
+		Vector<String> featureInPositionI = new Vector<String>();
+		Vector<String> newFeat = new Vector<String>();
+		StringBuffer curLabel = new StringBuffer();
+
+		for (int i = 0; i < label.length; ++i)
 		{
-			Vector<String> featureInPositionI = inst.extractFeaturesFromInstanceInPosition(i);
+			featureInPositionI = null;
+			featureInPositionI = inst.extractFeaturesFromInstanceInPosition(i);
 
-			String curLabel = "/curLabel=" + inst.label.elementAt(i);
+			curLabel.delete(0, curLabel.length());
+			curLabel.append("/cL=").append(inst.label[i]);
 
-			Vector<String> newFeat = new Vector<String>();
+			newFeat = new Vector<String>();
+			StringBuffer bf = new StringBuffer();
 			for (String str : featureInPositionI)
-				newFeat.add(str + curLabel);
+			{
+				bf.delete(0, bf.length());
+				bf.append(str).append(curLabel);
+				newFeat.add(new String(bf));
+			}
 
 			for (int j = 0; j < newFeat.size(); ++j)
 			{
 				if (feature2Int.containsKey(newFeat.elementAt(j)))
-					feature.add(feature2Int.get(newFeat.elementAt(j)));
+					featList.add(feature2Int.get(newFeat.elementAt(j)));
 				else
 				{
 					// in training, all features should appear in feature space
@@ -105,6 +139,14 @@ public class Pipe
 					throw new Exception("feature " + newFeat.elementAt(j) + "can't find in feature map!");
 				}
 			}
+
+			featureInPositionI = null;
+			newFeat = null;
 		}
+		this.feature = new int[featList.size()];
+		for (int i = 0; i < featList.size(); i++)
+			this.feature[i] = featList.get(i);
+
+		featList = null;
 	}
 }

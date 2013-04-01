@@ -25,13 +25,19 @@ public class SegIO
 		Vector<SegInstance> segVec = new Vector<SegInstance>();
 		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"));
 
+		//		int lineNum = 0;
 		String line;
 		while ((line = br.readLine()) != null)
 		{
+			//			lineNum++;
+			//			System.out.println(lineNum);
+			//			System.out.println(line);
 			if (line.trim().equals(""))
 				continue;
 
-			String[] sentence = line.trim().split(" ");
+			line = line.trim().replaceAll("\\t{1,}", " ");
+			line = line.replaceAll("\\s{2,}", " ");
+			String[] sentence = line.split(" ");
 			SegInstance inst = new SegInstance(sentence, segDic);
 			segVec.add(inst);
 		}

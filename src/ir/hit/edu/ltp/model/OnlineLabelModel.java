@@ -1,16 +1,17 @@
 package ir.hit.edu.ltp.model;
 
-import gnu.trove.TObjectIntHashMap;
-
+import gnu.trove.list.array.TFloatArrayList;
+import gnu.trove.map.hash.THashMap;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.Serializable;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -20,12 +21,15 @@ import java.util.Vector;
  * @author dzl
  * 
  */
-public class OnlineLabelModel
+@SuppressWarnings("serial")
+public class OnlineLabelModel implements Serializable
 {
 	public FeatureMap featMap;
-	public double[] parameter;
+	public float[] parameter;
 
-	public OnlineLabelModel(FeatureMap fm, double[] parameter)
+	//	public long[] useNum;
+
+	public OnlineLabelModel(FeatureMap fm, float[] parameter)
 	{
 		this.featMap = fm;
 		this.parameter = parameter;
@@ -34,18 +38,16 @@ public class OnlineLabelModel
 	public OnlineLabelModel(FeatureMap fm)
 	{
 		this.featMap = fm;
-		parameter = new double[fm.feature2Int.size()];
-//		for (int i = 0; i < parameter.length; i++)
-//			parameter[i] = 0;
+		parameter = new float[fm.feature2Int.size()];
+		//		useNum = new long[fm.feature2Int.size()];
 	}
 
 	// get score according feature vector
-	public double getScore(Vector<Integer> featVect)
+	public double getScore(int[] featVect)
 	{
 		double score = 0;
-		for (int i = 0; i < featVect.size(); ++i)
+		for (int index : featVect)
 		{
-			int index = featVect.elementAt(i);
 			if (index == -1)
 			{
 				continue;
@@ -55,7 +57,11 @@ public class OnlineLabelModel
 				throw new IllegalArgumentException("when get score, the feature index is an illegal index");
 			}
 			else
+			{
 				score += parameter[index];
+				//				if (useNum != null)
+				//					useNum[index]++;
+			}
 		}
 		return score;
 	}
@@ -70,17 +76,17 @@ public class OnlineLabelModel
 	}
 
 	// update the parameter according the predicted label and gold label
-	public void update(Vector<Integer> goldIndex, Vector<Integer> predictIndex)
+	public void update(int[] goldIndex, int[] predictIndex)
 	{
-		for (int i = 0; i < goldIndex.size(); ++i)
+		for (int i = 0; i < goldIndex.length; ++i)
 		{
-			if (goldIndex.elementAt(i) == predictIndex.elementAt(i))
+			if (goldIndex[i] == predictIndex[i])
 				continue;
 			else
 			{
-				parameter[goldIndex.elementAt(i)]++;
-				if (predictIndex.elementAt(i) >= 0 && predictIndex.elementAt(i) < parameter.length)
-					parameter[predictIndex.elementAt(i)]--;
+				parameter[goldIndex[i]]++;
+				if (predictIndex[i] >= 0 && predictIndex[i] < parameter.length)
+					parameter[predictIndex[i]]--;
 				else
 				{
 					throw new IllegalArgumentException("Illegal index when updata paramater");
@@ -90,17 +96,17 @@ public class OnlineLabelModel
 	}
 
 	// map string feature vector to int vector
-	public Vector<Integer> featVec2IntVec(Vector<String> featVec)
+	public int[] featVec2IntVec(String[] featVec)
 	{
-		Vector<Integer> intVec = new Vector<Integer>();
-		for (int m = 0; m < featVec.size(); m++)
+		int[] intVec = new int[featVec.length];
+		for (int m = 0; m < featVec.length; m++)
 		{
-			String str = featVec.elementAt(m);
+			String str = featVec[m];
 			if (featMap.feature2Int.containsKey(str))
-				intVec.add(featMap.feature2Int.get(str));
+				intVec[m] = featMap.feature2Int.get(str);
 			else
 			{
-				intVec.add(-1);
+				intVec[m] = -1;
 			}
 		}
 
@@ -126,15 +132,15 @@ public class OnlineLabelModel
 		FileOutputStream s = new FileOutputStream(modelFile);
 		PrintWriter wr = new PrintWriter(new OutputStreamWriter(s, "UTF-8"));
 
-		double threshold = 1e-4;
+		double threshold = 1e-3;
 		if (ratio > 0)
 		{
 			//get weight threshold, we use it to compress model
-			Vector<Double> weight = new Vector<Double>();
-			for (double w : parameter)
+			Vector<Float> weight = new Vector<Float>();
+			for (float w : parameter)
 			{
 				w = Math.abs(w);
-				if (w < 1e-4)
+				if (w < 1e-3)
 					continue;
 				else
 					weight.add(w);
@@ -142,27 +148,113 @@ public class OnlineLabelModel
 			Collections.sort(weight);
 			threshold = weight.elementAt((int) (weight.size() * ratio));
 		}
-		
+
 		wr.write("#label\n");
 		for (int i = 0; i < featMap.int2Label.size(); i++)
 			wr.write(featMap.int2Label.get(i) + " " + i + "\n");
 		wr.write("\n");
 
 		wr.write("#feature\n");
-		Object[] feats = featMap.feature2Int.keys();
+
+		Set<String> feats = featMap.feature2Int.keySet();
+		;
 		int num = 0;
-		for (int i = 0; i < feats.length; i++)
+		for (String str : feats)
 		{
-			int id = featMap.feature2Int.get(feats[i]);
+			int id = featMap.feature2Int.get(str);
 			if (Math.abs(parameter[id]) < threshold)
 				continue;
-			wr.write(feats[i] + " " + num + " " + parameter[id] + "\n");
+			wr.write(str + " " + num + " " + parameter[id] + "\n");
 			num++;
 		}
 
 		wr.flush();
 		wr.close();
 	}
+
+	/**
+	 * write model to a file
+	 * sort features by used number
+	 * some feature's value in parameter is 0 and these feature is useless for
+	 * test
+	 * just discard them and this can decrease model size significantly
+	 * 
+	 * @param modelFile
+	 * @throws Exception
+	 */
+	//	public void writerModel(String modelFile, final double ratio) throws Exception
+	//	{
+	//		if (ratio < 0 || ratio >= 1)
+	//		{
+	//			throw new Exception("the Rompression ratio should more than 0 and less than 1");
+	//		}
+	//
+	//		FileOutputStream s = new FileOutputStream(modelFile);
+	//		PrintWriter wr = new PrintWriter(new OutputStreamWriter(s, "UTF-8"));
+	//
+	//		double threshold = 1e-3;
+	//		if (ratio > 0)
+	//		{
+	//			//get weight threshold, we use it to compress model
+	//			Vector<Float> weight = new Vector<Float>();
+	//			for (float w : parameter)
+	//			{
+	//				w = Math.abs(w);
+	//				if (w < 1e-3)
+	//					continue;
+	//				else
+	//					weight.add(w);
+	//			}
+	//			Collections.sort(weight);
+	//			threshold = weight.elementAt((int) (weight.size() * ratio));
+	//		}
+	//
+	//		wr.write("#label\n");
+	//		for (int i = 0; i < featMap.int2Label.size(); i++)
+	//			wr.write(featMap.int2Label.get(i) + " " + i + "\n");
+	//		wr.write("\n");
+	//
+	//		Vector<Feature> featVec = new Vector<OnlineLabelModel.Feature>();
+	//		
+	//		Set<String> feats = featMap.feature2Int.keySet();
+	//		int number = 0;
+	//		for (String str : feats)
+	//		{
+	//			int id = featMap.feature2Int.get(str);
+	//			float value = parameter[id];
+	//			if (Math.abs(value) < threshold)
+	//				continue;
+	//			Feature feat = new Feature(str, number++, value, useNum[id]);
+	//			featVec.add(feat);
+	//		}
+	//		
+	//		Collections.sort(featVec, new Comparator<Feature>()
+	//				{
+	//					public int compare(Feature a, Feature b)
+	//					{
+	//						if (a.useNum > b.useNum)
+	//							return -1;
+	//						else if (a.useNum < b.useNum)
+	//							return 1;
+	//						else
+	//							return 0;
+	//					}
+	//				});
+	//		
+	//		wr.write("#feature\n");
+	//		
+	//		for (int i = 0; i < featVec.size(); i++)
+	//		{
+	//			String feature = featVec.elementAt(i).feat;
+	//			int index = featVec.elementAt(i).index;
+	//			float value = featVec.elementAt(i).value;
+	//			wr.write(feature + " " + index + " " + value + "\n");
+	//		}
+	//
+	//		wr.flush();
+	//		wr.close();
+	//	}
+	//	
 
 	/**
 	 * load a model from model file
@@ -177,8 +269,8 @@ public class OnlineLabelModel
 		InputStreamReader is = new InputStreamReader(new FileInputStream(modelFile), "UTF-8");
 		BufferedReader br = new BufferedReader(is);
 
-		gnu.trove.TObjectIntHashMap label2Int = new gnu.trove.TObjectIntHashMap();
-		gnu.trove.TIntObjectHashMap int2Label = new gnu.trove.TIntObjectHashMap();
+		THashMap<String, Integer> label2Int = new THashMap<String, Integer>();
+		THashMap<Integer, String> int2Label = new THashMap<Integer, String>();
 
 		String line;
 		while ((line = br.readLine()) != null && !line.equals("#label"))
@@ -208,8 +300,9 @@ public class OnlineLabelModel
 			throw new Exception("read model error when reading features from model file");
 		}
 
-		gnu.trove.TObjectIntHashMap feat2Int = new gnu.trove.TObjectIntHashMap();
-		gnu.trove.TDoubleArrayList paraArray = new gnu.trove.TDoubleArrayList();
+		THashMap<String, Integer> feat2Int = new THashMap<String, Integer>();
+		//		gnu.trove.TDoubleArrayList paraArray = new gnu.trove.TDoubleArrayList();
+		TFloatArrayList paraArray = new TFloatArrayList();
 
 		while ((line = br.readLine()) != null && !line.equals(""))
 		{
@@ -220,7 +313,7 @@ public class OnlineLabelModel
 			}
 			String feat = token[0];
 			int index = Integer.parseInt(token[1].trim());
-			double value = Double.parseDouble(token[2].trim());
+			float value = Float.parseFloat(token[2].trim());
 			feat2Int.put(feat, index);
 			paraArray.add(value);
 		}
@@ -231,9 +324,25 @@ public class OnlineLabelModel
 		}
 
 		FeatureMap featMap = new FeatureMap(feat2Int, label2Int, int2Label);
-		double[] parameter = paraArray.toNativeArray();
+		float[] parameter = paraArray.toArray();
 		OnlineLabelModel model = new OnlineLabelModel(featMap, parameter);
 
 		return model;
 	}
+
+	//	class Feature
+	//	{
+	//		public String feat;
+	//		public int index;
+	//		public float value;
+	//		public long useNum;
+	//		
+	//		public Feature(String feat,int index,float value,long useNum)
+	//		{
+	//			this.feat = feat;
+	//			this.index = index;
+	//			this.value = value;
+	//			this.useNum = useNum;
+	//		}
+	//	}
 }

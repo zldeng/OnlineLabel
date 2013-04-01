@@ -1,8 +1,10 @@
 package ir.hit.edu.ltp.model;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Vector;
-import gnu.trove.*;
 
+import gnu.trove.map.hash.THashMap;
 import ir.hit.edu.ltp.basic.Pipe;
 import ir.hit.edu.ltp.basic.SegInstance;
 import ir.hit.edu.ltp.dic.PosDic;
@@ -15,13 +17,15 @@ import ir.hit.edu.ltp.basic.PosInstance;
  * @author dzl
  * 
  */
-public class FeatureMap
+@SuppressWarnings("serial")
+public class FeatureMap implements Serializable
 {
-	public TObjectIntHashMap feature2Int;
-	public TObjectIntHashMap label2Int;
-	public TIntObjectHashMap int2Label;
-	
-	public FeatureMap(TObjectIntHashMap feature2Int, TObjectIntHashMap label2Int, TIntObjectHashMap int2Label)
+	public THashMap<String, Integer> feature2Int;
+	public THashMap<String, Integer> label2Int;
+	public THashMap<Integer, String> int2Label;
+
+	public FeatureMap(THashMap<String, Integer> feature2Int, THashMap<String, Integer> label2Int,
+			THashMap<Integer, String> int2Label)
 	{
 		this.feature2Int = feature2Int;
 		this.label2Int = label2Int;
@@ -39,12 +43,12 @@ public class FeatureMap
 	 * @param posPipeVec
 	 * @throws Exception
 	 */
-	public FeatureMap(Vector<PosInstance> instanceVec, Vector<String> allLabel, PosDic posDic,
-			Vector<Pipe> posPipeVec) throws Exception
+	public FeatureMap(Vector<PosInstance> instanceVec, Vector<String> allLabel, PosDic posDic, Vector<Pipe> posPipeVec)
+			throws Exception
 	{
-		this.feature2Int = new TObjectIntHashMap();
-		this.label2Int = new TObjectIntHashMap();
-		this.int2Label = new TIntObjectHashMap();
+		this.feature2Int = new THashMap<String, Integer>();
+		this.label2Int = new THashMap<String, Integer>();
+		this.int2Label = new THashMap<Integer, String>();
 
 		for (int i = 0; i < allLabel.size(); i++)
 		{
@@ -55,89 +59,106 @@ public class FeatureMap
 		}
 
 		//create all label features
+		StringBuffer bf = new StringBuffer();
 		for (int i = 0; i < allLabel.size(); i++)
 		{
 			for (int j = 0; j < allLabel.size(); j++)
 			{
-				String biLabel = "BiLabels=" + allLabel.elementAt(i) + "/curLabel=" + allLabel.elementAt(j);
+				bf.delete(0, bf.length());
+				bf.append("BL=").append(allLabel.elementAt(i)).append("/cL=").append(allLabel.elementAt(j));
+				String biLabel = new String(bf);
+
 				if (lookUpFeatureIndex(biLabel) == -1)
 					addFeature(biLabel);
+				biLabel = null;
 			}
-			String biLabel = "BiLabels=_BL_/curLabel=" + allLabel.elementAt(i);
+			String biLabel = "BL=_BL_/cL=" + allLabel.elementAt(i);
 			if (lookUpFeatureIndex(biLabel) == -1)
 				addFeature(biLabel);
+			biLabel = null;
 		}
 
 		// PrintWriter writer = new PrintWriter(new FileWriter("feat.utf8"));
 
-		for (int i = 0; i < instanceVec.size(); ++i)
+		for (PosInstance tmpInstance : instanceVec)
 		{
-			Pipe tmpPosPipe = new Pipe();
-
-			final PosInstance tmpInstance = instanceVec.elementAt(i);
-			
+			ArrayList<Integer> featList = new ArrayList<Integer>();
 			/**************/
-//			System.out.println("sentence " + i);
-			
-			
+			//			System.out.println("sentence " + i);
+
 			// writer.write("sentence: " + tmpInstance.words.toString() + "\n");
 			// writer.write("label   : " + tmpInstance.label.toString() + "\n");
-			for (int j = 0; j < tmpInstance.words.size(); j++)
-			{
-				tmpPosPipe.label.add(tmpInstance.label.elementAt(j));
 
+			StringBuffer curLabel = new StringBuffer();
+			for (int j = 0; j < tmpInstance.words.length; j++)
+			{
 				Vector<String> featVec = tmpInstance.extractFeaturesFromInstanceInPosition(j, posDic);
 
-				String word = tmpInstance.words.elementAt(j);
+				String word = tmpInstance.words[j];
 
 				// create feature space
 				// when the word appears in dictionary
 				// just use the candidate POS
 				Vector<String> cadidatePos = posDic.containsKey(word) ? posDic.getPos(word) : allLabel;
-				for (int w = 0; w < cadidatePos.size(); w++)
+				for (String pos : cadidatePos)
 				{
-					String curLabel = "/curLabel=" + cadidatePos.elementAt(w);
-					for (int p = 0; p < featVec.size(); p++)
+					curLabel.delete(0, curLabel.length());
+					curLabel.append("/cL=").append(pos);
+					//					String curLabel = "/cL=" + cadidatePos.elementAt(w);
+					for (String featOld : featVec)
 					{
-						String feat = featVec.elementAt(p) + curLabel;
+						bf.delete(0, bf.length());
+						bf.append(featOld).append(curLabel);
+						String feat = new String(bf);
 						if (lookUpFeatureIndex(feat) == -1)
 							addFeature(feat);
+						feat = null;
 					}
-
 				}
 
-				String curLabel = "/curLabel=" + tmpInstance.label.elementAt(j);
+				curLabel.delete(0, curLabel.length());
+				curLabel.append("/cL=").append(tmpInstance.label[j]);
 
 				// writer.write("\nposition: " + j + " feature:\n");
 				// map the instance from string feature vector to PosPipe
-				for (int k = 0; k < featVec.size(); k++)
+				for (String featOld : featVec)
 				{
-					String feat = featVec.elementAt(k) + curLabel;
+					bf.delete(0, bf.length());
+					bf.append(featOld).append(curLabel);
+					String feat = new String(bf);
 					// writer.write(feat + "\n");
 					if (feature2Int.containsKey(feat))
-						tmpPosPipe.feature.add(feature2Int.get(feat));
+						featList.add(feature2Int.get(feat));
 					else
 					{
 						// when training,all features should appear in feature space
-						throw new Exception("feature can't find in feature map!");
+						System.out.println("word: " + word);
+						System.out.println("cad pos:");
+						System.out.println(cadidatePos);
 
+						System.out.println("curL: " + curLabel);
+						System.out.println("feat: " + feat);
+						throw new Exception("feature can't find in feature map!");
 					}
 				}
 			}
 
-			posPipeVec.add(tmpPosPipe);
-		}
+			String[] label = tmpInstance.label;
+			int[] feature = new int[featList.size()];
+			for (int k = 0; k < feature.length; k++)
+				feature[k] = featList.get(k);
 
+			posPipeVec.add(new Pipe(feature, label));
+		}
 		// writer.close();
 	}
 
-	@SuppressWarnings("unchecked")
 	public FeatureMap(Vector<SegInstance> instanceVec, Vector<String> allLabel, Vector<Pipe> segPipeVec)
 			throws Exception
 	{
-		this.feature2Int = new TObjectIntHashMap();
-		this.label2Int = new TObjectIntHashMap();
-		this.int2Label = new TIntObjectHashMap();
+		this.feature2Int = new THashMap<String, Integer>();
+		this.label2Int = new THashMap<String, Integer>();
+		this.int2Label = new THashMap<Integer, String>();
 
 		for (String str : allLabel)
 		{
@@ -148,61 +169,78 @@ public class FeatureMap
 		}
 
 		//create all bigram label features
-		for (int i = 0; i < allLabel.size(); i++)
+		StringBuffer bf = new StringBuffer();
+		for (String curPos : allLabel)
 		{
-			for (int j = 0; j < allLabel.size(); j++)
+			for (String prePos : allLabel)
 			{
-				String biLabel = "BiLabels=" + allLabel.elementAt(i) + "/curLabel=" + allLabel.elementAt(j);
+				bf.delete(0, bf.length());
+				bf.append("BL=").append(prePos).append("/cL=").append(curPos);
+				String biLabel = new String(bf);
 				if (lookUpFeatureIndex(biLabel) == -1)
 					addFeature(biLabel);
+				biLabel = null;
 			}
-			String biLabel = "BiLabels=_BL_/curLabel=" + allLabel.elementAt(i);
+			String biLabel = "BL=_BL_/cL=" + curPos;
 			if (lookUpFeatureIndex(biLabel) == -1)
 				addFeature(biLabel);
 		}
 
-		for (int i = 0; i < instanceVec.size(); i++)
+		StringBuffer curLabel = new StringBuffer();
+		for (SegInstance inst : instanceVec)
 		{
-			SegInstance inst = instanceVec.elementAt(i);
-
-			Pipe tmpSegPipe = new Pipe();
-
+			ArrayList<Integer> featList = new ArrayList<Integer>();
 			//			System.out.println(inst.sentence);
-			for (int j = 0; j < inst.sentence.size(); j++)
+			for (int j = 0; j < inst.sentence.length; j++)
 			{
 				//				System.out.println("pos: " + j);
-				tmpSegPipe.label.add(inst.label.elementAt(j));
+
 				Vector<String> featVec = inst.extractFeaturesFromInstanceInPosition(j);
 
 				//create all possible feature when training
 				//contains all positive feature and all negative feature
 				for (String str : allLabel)
 				{
-					String curLabel = "/curLabel=" + str;
+					curLabel.delete(0, curLabel.length());
+					curLabel.append("/cL=").append(str);
 					for (String feat : featVec)
 					{
 						//						System.out.println(feat + curLabel);
+						bf.delete(0, bf.length());
+						bf.append(feat).append(curLabel);
+						String featStr = new String(bf);
+						if (!feature2Int.contains(featStr))
+							addFeature(featStr);
 
-						if (!feature2Int.contains(feat + curLabel))
-							addFeature(feat + curLabel);
+						featStr = null;
 					}
 				}
 
 				//map current SegInstance to SegPipe
-				String curLabel = "/curLabel=" + inst.label.elementAt(j);
+				curLabel.delete(0, curLabel.length());
+				curLabel.append("/cL=").append(inst.label[j]);
 				for (String str : featVec)
 				{
-					String tmp = str + curLabel;
+					bf.delete(0, bf.length());
+					bf.append(str).append(curLabel);
+					String tmp = new String(bf);
 					if (feature2Int.contains(tmp))
-						tmpSegPipe.feature.add(feature2Int.get(tmp));
+						featList.add(feature2Int.get(tmp));
 					else
 					{
 						throw new Exception("feature can't find in feature map!");
 					}
+
+					tmp = null;
 				}
 			}
 
-			segPipeVec.add(tmpSegPipe);
+			String[] label = inst.label;
+			int[] feature = new int[featList.size()];
+			for (int k = 0; k < feature.length; k++)
+				feature[k] = featList.get(k);
+
+			segPipeVec.add(new Pipe(feature, label));
 		}
 	}
 

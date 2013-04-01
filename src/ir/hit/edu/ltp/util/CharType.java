@@ -1,6 +1,6 @@
 package ir.hit.edu.ltp.util;
 
-import java.util.HashSet;
+import gnu.trove.set.hash.THashSet;
 
 /**
  * a class for char type
@@ -30,9 +30,9 @@ public class CharType
 			"一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "百", "千", "零", "壹", "貳", "三", "肆", "伍", "陸", "柒", "捌",
 			"玖", "拾", "萬" };
 
-	public static HashSet<String> digitSet = new HashSet<String>();
-	public static HashSet<String> punctSet = new HashSet<String>();
-	public static HashSet<String> letterSet = new HashSet<String>();
+	public static THashSet<String> digitSet = new THashSet<String>();
+	public static THashSet<String> punctSet = new THashSet<String>();
+	public static THashSet<String> letterSet = new THashSet<String>();
 
 	public static void loadCharType()
 	{

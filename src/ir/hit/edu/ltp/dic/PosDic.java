@@ -1,10 +1,11 @@
 package ir.hit.edu.ltp.dic;
 
+import gnu.trove.map.hash.THashMap;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.Vector;
 
 /**
@@ -15,16 +16,16 @@ import java.util.Vector;
  */
 public class PosDic
 {
-	private HashMap<String, Vector<String>> word2Pos;
+	private THashMap<String, Vector<String>> word2Pos;
 
-	public PosDic(HashMap<String, Vector<String>> word2Pos)
+	public PosDic(THashMap<String, Vector<String>> word2Pos)
 	{
 		this.word2Pos = word2Pos;
 	}
 
 	public PosDic()
 	{
-		this.word2Pos = new HashMap<String, Vector<String>>();
+		this.word2Pos = new THashMap<String, Vector<String>>();
 	}
 
 	public int size()
@@ -63,11 +64,12 @@ public class PosDic
 		{
 			if (line.trim().equals(""))
 				continue;
+			//line = FullCharConverter.half2Fullchange(line);
 			String[] token = line.trim().split(" ");
 			if (word2Pos.containsKey(token[0]))
 			{
 				Vector<String> tmpPos = word2Pos.get(token[0]);
-				for (int i = 1;i < token.length;i++)
+				for (int i = 1; i < token.length; i++)
 					if (!tmpPos.contains(token[i]))
 						tmpPos.add(token[i]);
 				word2Pos.put(token[0], tmpPos);
@@ -80,7 +82,7 @@ public class PosDic
 
 				word2Pos.put(token[0], posVec);
 			}
-			
+
 		}
 	}
 }

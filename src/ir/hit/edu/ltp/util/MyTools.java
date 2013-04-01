@@ -4,9 +4,9 @@ import java.util.Vector;
 
 public class MyTools
 {
-	public static double[] mixParameter(Vector<double[]> paramaterVec)
+	public static float[] mixParameter(Vector<float[]> paramaterVec)
 	{
-		double[] result = new double[paramaterVec.elementAt(0).length];
+		float[] result = new float[paramaterVec.elementAt(0).length];
 		for (int i = 0; i < result.length; i++)
 		{
 			for (int j = 0; j < paramaterVec.size(); j++)

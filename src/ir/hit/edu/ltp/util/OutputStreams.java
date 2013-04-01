@@ -22,4 +22,10 @@ public class OutputStreams
 		wr.write(str);
 		wr.flush();
 	}
+
+	public void close()
+	{
+		wr.flush();
+		wr.close();
+	}
 }

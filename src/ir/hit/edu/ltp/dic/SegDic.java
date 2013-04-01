@@ -6,20 +6,20 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import gnu.trove.*;
+import gnu.trove.set.hash.THashSet;
 
 public class SegDic
 {
-	THashSet wordDic;
+	THashSet<String> wordDic;
 
-	public SegDic(THashSet wordDic)
+	public SegDic(THashSet<String> wordDic)
 	{
 		this.wordDic = wordDic;
 	}
 
 	public SegDic()
 	{
-		this.wordDic = new THashSet();
+		this.wordDic = new THashSet<String>();
 	}
 
 	/**

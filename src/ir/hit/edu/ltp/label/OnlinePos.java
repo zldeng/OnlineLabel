@@ -35,7 +35,7 @@ public class OnlinePos
 			logger.info("Model file: " + option.modelFile);
 			logger.info("Iterator number: " + option.iterator);
 			logger.info("thread number: " + option.threadNum);
-			logger.info("compress retio: " + option.compressRatio + "\n");
+			logger.info("compress ratio: " + option.compressRatio + "\n");
 
 			logger.info("training start....\n");
 			PosAP posTagger = new PosAP();
