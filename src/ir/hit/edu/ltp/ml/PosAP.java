@@ -25,7 +25,7 @@ import ir.hit.edu.ltp.util.MyTools;
  * @author dzl
  * 
  */
-public class PosAP extends PosViterbi implements Callable<float[]>
+public class PosAP extends PosViterbi implements Callable<Object[]>
 {
 	private Vector<PosInstance> instanceList;
 	private Vector<Pipe> posPipeList;
@@ -188,7 +188,7 @@ public class PosAP extends PosViterbi implements Callable<float[]>
 			for (int i = 0; i < model.featMap.feature2Int.size(); i++)
 			{
 				tmpModel.parameter[i] = (float) (total[i] / (instanceList.size() * (it + 1)));
-				//				tmpModel.useNum[i] = model.useNum[i];
+				tmpModel.useNum[i] = model.useNum[i];
 			}
 
 			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel);
@@ -296,7 +296,7 @@ public class PosAP extends PosViterbi implements Callable<float[]>
 			logger.info("start iterator " + it + " ...");
 
 			ExecutorService exec = Executors.newCachedThreadPool();
-			ArrayList<Future<float[]>> results = new ArrayList<Future<float[]>>();
+			ArrayList<Future<Object[]>> results = new ArrayList<Future<Object[]>>();
 
 			CountDownLatch finishSigle = new CountDownLatch(threadNum);
 			//create threaNum threads and submit them
@@ -305,24 +305,32 @@ public class PosAP extends PosViterbi implements Callable<float[]>
 				//because the PosAP extends from PosViterbi and PosViterbi has implemented Runnable interface
 				//in ExecutorService, there are two submit methods, one uses a Runnable task as parameter and another uses a Callable task as parameter
 				//so we must use a cast to tell submit that we want use the submit which use a Callable parameter
-				results.add(exec.submit((Callable<float[]>) new PosAP(model, posDic, allLabel, id, instanceList,
+				results.add(exec.submit((Callable<Object[]>) new PosAP(model, posDic, allLabel, id, instanceList,
 						posPipeList, finishSigle)));
 			}
 
 			//wait until all sub-thread are finished
 			finishSigle.await();
 			logger.info("sub-threads are all finished!");
-			logger.info("merge parameter...");
+			logger.info("merge parameter and use number...");
 			Vector<float[]> paraVec = new Vector<float[]>();
+			Vector<long[]> useVec = new Vector<long[]>();
 
-			for (Future<float[]> fs : results)
+			for (Future<Object[]> fs : results)
 			{
-				paraVec.add(fs.get());
+				Object[] tmp = fs.get();
+				paraVec.add((float[]) tmp[0]);
+				useVec.add((long[]) tmp[1]);
+
 			}
 			float[] tmpPara = MyTools.mixParameter(paraVec);
-			logger.info("merge parameter over!");
+			long[] useNum = MyTools.mixUseNum(useVec);
+			logger.info("finish merging parameter and useNum!");
+			
+			for (int i = 0;i < useNum.length;i++)
+				model.useNum[i] += useNum[i];
 
-			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara);
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara, model.useNum);
 			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel);
 
 			// evaluate current model with development file
@@ -351,7 +359,7 @@ public class PosAP extends PosViterbi implements Callable<float[]>
 		logger.info("training time: " + (endTime - startTime) / 1000 + " s\n");
 	}
 
-	private float[] trainWithSubInstance() throws Exception
+	private Object[] trainWithSubInstance() throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
 		logger.info("training in thread " + id + " start...");
@@ -404,14 +412,18 @@ public class PosAP extends PosViterbi implements Callable<float[]>
 			//			model.addToTotal(tmpTotal);
 		}
 
+		logger.info("thread " + id + " finish!");
+		Object[] result = new Object[2];
+		result[0] = model.parameter;
+		result[1] = model.useNum;
 		//tell the thread manager, this thread has finished it's work
 		finishSigle.countDown();
-		logger.info("thread " + id + " finish!");
-		return model.parameter;
+
+		return result;
 	}
 
 	@Override
-	public float[] call() throws Exception
+	public Object[] call() throws Exception
 	{
 		return trainWithSubInstance();
 	}

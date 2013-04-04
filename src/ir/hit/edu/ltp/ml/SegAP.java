@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
-public class SegAP extends SegViterbi implements Callable<float[]>
+public class SegAP extends SegViterbi implements Callable<Object[]>
 {
 	private Vector<SegInstance> instanceList;
 	private Vector<Pipe> segPipeList;
@@ -149,6 +149,7 @@ public class SegAP extends SegViterbi implements Callable<float[]>
 				model.update(segPipeList.elementAt(inst).feature, predPipe.feature);
 
 				predPipe = null;
+				predInstance = null;
 
 				model.addToTotal(total);
 
@@ -160,6 +161,7 @@ public class SegAP extends SegViterbi implements Callable<float[]>
 			for (int i = 0; i < tmpModel.parameter.length; i++)
 			{
 				tmpModel.parameter[i] = (float) (total[i] / (instanceList.size() * (it + 1)));
+				tmpModel.useNum[i] = model.useNum[i];
 			}
 
 			SegAP tmpSeg = new SegAP(tmpModel, segDic, allLabel);
@@ -268,7 +270,7 @@ public class SegAP extends SegViterbi implements Callable<float[]>
 			logger.info("start iterator " + it + " ...");
 
 			ExecutorService exec = Executors.newCachedThreadPool();
-			ArrayList<Future<float[]>> results = new ArrayList<Future<float[]>>();
+			ArrayList<Future<Object[]>> results = new ArrayList<Future<Object[]>>();
 
 			CountDownLatch finishSigle = new CountDownLatch(threadNum);
 			//create threadNum threads and submit them
@@ -277,24 +279,32 @@ public class SegAP extends SegViterbi implements Callable<float[]>
 				//because the PosAP extends from PosViterbi and PosViterbi has implemented Runnable interface
 				//in ExecutorService, there are two submit methods, one uses a Runnable task as parameter and another uses a Callable task as parameter
 				//so we must use a cast to tell submit that we want use the submit which use a Callable parameter
-				results.add(exec.submit((Callable<float[]>) new SegAP(model, segDic, allLabel, id, instanceList,
+				results.add(exec.submit((Callable<Object[]>) new SegAP(model, segDic, allLabel, id, instanceList,
 						segPipeList, finishSigle)));
 			}
 
 			//wait until all sub-thread are finished
 			finishSigle.await();
 			logger.info("sub-threads are all finished!");
-			logger.info("merge parameter...");
+			logger.info("merge parameter and useNum...");
 			Vector<float[]> paraVec = new Vector<float[]>();
+			Vector<long[]> useVec = new Vector<long[]>();
 
-			for (Future<float[]> fs : results)
+			for (Future<Object[]> fs : results)
 			{
-				paraVec.add(fs.get());
+				Object[] tmp = fs.get();
+				paraVec.add((float[]) tmp[0]);
+				useVec.add((long[]) tmp[1]);
 			}
 			float[] tmpPara = MyTools.mixParameter(paraVec);
-			logger.info("merge parameter over!");
+			long[] useNum = MyTools.mixUseNum(useVec);
+			
+			logger.info("finiash merging parameter and useNum!");
+			
+			for (int i = 0;i < useNum.length;i++)
+				model.useNum[i] += useNum[i];
 
-			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara);
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara,model.useNum);
 			SegAP tmpSegger = new SegAP(tmpModel, segDic, allLabel);
 
 			// evaluate current model with dev file
@@ -329,7 +339,7 @@ public class SegAP extends SegViterbi implements Callable<float[]>
 		logger.info("training time: " + (endTime - startTime) / 1000 + " s\n");
 	}
 
-	private float[] trainWithSubInstance() throws Exception
+	private Object[] trainWithSubInstance() throws Exception
 	{
 		Logger logger = Logger.getLogger("seg");
 		logger.info("training in thread " + id + " start...");
@@ -370,15 +380,18 @@ public class SegAP extends SegViterbi implements Callable<float[]>
 			model.update(segPipeList.elementAt(instIndex).feature, predPipe.feature);
 		}
 
+		logger.info("thread " + id + " finish!");
+		Object[] result = new Object[2];
+		result[0] = model.parameter;
+		result[1] = model.useNum;
 		//tell the thread manager, this thread has finished it's work
 		finishSigle.countDown();
-		logger.info("thread " + id + " finish!");
-
-		return model.parameter;
+		
+		return result;
 	}
 
 	@Override
-	public float[] call() throws Exception
+	public Object[] call() throws Exception
 	{
 		// TODO Auto-generated method stub
 		return trainWithSubInstance();

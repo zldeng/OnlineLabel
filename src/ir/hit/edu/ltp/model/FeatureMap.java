@@ -1,6 +1,5 @@
 package ir.hit.edu.ltp.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -17,8 +16,7 @@ import ir.hit.edu.ltp.basic.PosInstance;
  * @author dzl
  * 
  */
-@SuppressWarnings("serial")
-public class FeatureMap implements Serializable
+public class FeatureMap
 {
 	public THashMap<String, Integer> feature2Int;
 	public THashMap<String, Integer> label2Int;

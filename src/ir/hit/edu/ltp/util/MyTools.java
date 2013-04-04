@@ -18,4 +18,16 @@ public class MyTools
 
 		return result;
 	}
+	
+	public static long[] mixUseNum(Vector<long[]> useVec)
+	{
+		long[] result = new long[useVec.elementAt(0).length];
+		for (int i = 0;i < result.length;i++)
+		{
+			for (int j = 0;j < useVec.size();j++)
+				result[i] += useVec.elementAt(j)[i];
+		}
+		
+		return result;
+	}
 }
