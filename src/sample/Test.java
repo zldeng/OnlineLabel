@@ -44,9 +44,10 @@ public class Test
 		/**************** POS **************/
 		String posModel = "./model/conll06.pos.model-18";
 		String posDic = "./data/pos/conll06.pos.dic";
+		String posCluster = "./data/pos/cluster.txt";
 
 		PosAP posTagger = new PosAP();
-		posTagger.loadResource(posModel, posDic);
+		posTagger.loadResource(posModel, posDic,posCluster);
 
 		//POS for a segmented file using only one thread
 		String posFile = "./data/pos/test.conll06.seg";
