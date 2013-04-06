@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
+import gnu.trove.map.hash.THashMap;
 import ir.hit.edu.ltp.basic.PosInstance;
 import ir.hit.edu.ltp.basic.Pipe;
 import ir.hit.edu.ltp.dic.PosDic;
@@ -33,9 +34,9 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 	private int id;
 	private CountDownLatch finishSigle;
 
-	public PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel)
+	public PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel,THashMap<String, String> clusterMap)
 	{
-		super(model, posDic, allLabel);
+		super(model, posDic, allLabel,clusterMap);
 	}
 
 	public PosAP()
@@ -43,7 +44,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 
 	}
 
-	public PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel, int id,
+	public PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel, THashMap<String, String> clusterMap,int id,
 			Vector<PosInstance> instanceList, Vector<Pipe> posPipeList, CountDownLatch finishSigle)
 	{
 		this.model = new OnlineLabelModel(model.featMap);
@@ -52,6 +53,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 
 		this.posDic = posDic;
 		this.allLabel = allLabel;
+		this.clusterMap = clusterMap;
 		this.instanceList = instanceList;
 		this.posPipeList = posPipeList;
 		this.id = id;
@@ -60,7 +62,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 
 	//if the thread number is only one,just use old training function. we can save some time by avoiding managing thread
 	//if the thread number is more than one, then use another training function
-	public void PosAPTrain(String trainingFile, String modelFile, String dicFile, int iterator, String devFile, final double compressRatio, final int threadNum)
+	public void PosAPTrain(String trainingFile, String modelFile, String dicFile,String clusterFile, int iterator, String devFile, final double compressRatio, final int threadNum)
 			throws Exception
 	{
 		if (threadNum <= 0)
@@ -69,9 +71,9 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 		}
 
 		if (1 == threadNum)
-			PosAPTrainWithOneThread(trainingFile, modelFile, dicFile, iterator, devFile, compressRatio);
+			PosAPTrainWithOneThread(trainingFile, modelFile, dicFile, clusterFile,iterator, devFile, compressRatio);
 		else
-			PosAPTrainWithMultiThreads(trainingFile, modelFile, dicFile, iterator, devFile, compressRatio, threadNum);
+			PosAPTrainWithMultiThreads(trainingFile, modelFile, dicFile, clusterFile,iterator, devFile, compressRatio, threadNum);
 
 	}
 
@@ -87,7 +89,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 	 * @param devFile
 	 * @throws Exception
 	 */
-	private void PosAPTrainWithOneThread(String trainingFile, String modelFile, String dicFile, int iterator, String devFile, final double compressRatio)
+	private void PosAPTrainWithOneThread(String trainingFile, String modelFile, String dicFile, String clusterFile,int iterator, String devFile, final double compressRatio)
 			throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
@@ -96,7 +98,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 		long startTime = System.currentTimeMillis();
 
 		//load training instance and transform them to PosInstance, then initialize dictionary, model
-		loadInstanceAndInit(trainingFile, dicFile);
+		loadInstanceAndInit(trainingFile, dicFile,clusterFile);
 
 		ArrayList<Integer> intList = new ArrayList<Integer>();
 		for (int p = 0; p < instanceList.size(); p++)
@@ -134,8 +136,10 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 				int inst = intList.indexOf(q);
 
 				String[] sentence = instanceList.elementAt(inst).words;
+				String[] cluster = instanceList.elementAt(inst).cluster;
+				
 				Vector<String> predLabel = new Vector<String>();
-				pos(sentence, predLabel);
+				pos(sentence,cluster, predLabel);
 
 				if (predLabel.size() != sentence.length)
 				{
@@ -146,8 +150,8 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 				}
 
 				String[] predArray = new String[predLabel.size()];
-				for (int m = 0; m < predArray.length; m++)
-					predArray[m] = predLabel.elementAt(m);
+				for (int i = 0;i < predArray.length;i++)
+					predArray[i] = predLabel.elementAt(i);
 
 				// if the prediction is correct, next instance
 				if (predArray.equals(instanceList.elementAt(inst).label))
@@ -157,7 +161,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 					predArray = null;
 					continue;
 				}
-				PosInstance preInstance = new PosInstance(sentence, predArray);
+				PosInstance preInstance = new PosInstance(sentence, cluster,predArray);
 
 				// get feature vector of predicted result
 				Pipe predPipe = new Pipe(preInstance, model.featMap.feature2Int, posDic);
@@ -191,7 +195,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 				tmpModel.useNum[i] = model.useNum[i];
 			}
 
-			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel);
+			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel,clusterMap);
 
 			// evaluate current model with dev file
 			logger.info("Evaluate model for dev file with uncompressed model...");
@@ -205,7 +209,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 			if (compressRatio > 0)
 			{
 				OnlineLabelModel compressedModel = OnlineLabelModel.loadModel(modelFile + "-it-" + it);
-				tmpPosTagger = new PosAP(compressedModel, posDic, allLabel);
+				tmpPosTagger = new PosAP(compressedModel, posDic, allLabel,clusterMap);
 				logger.info("Evaluate compressed model for dev file with compressed model...");
 				devPre = tmpPosTagger.evalPos(devFile, it);
 				logger.info("the POS precision of compressed model for dev file is: " + devPre + "\n");
@@ -222,19 +226,23 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 		logger.info("training time: " + (endTime - startTime) / 1000 + " s" + "\n");
 	}
 
-	private void loadInstanceAndInit(final String trainingFile, final String dicFile) throws Exception
+	private void loadInstanceAndInit(final String trainingFile, final String dicFile,final String clusterFile) throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
 
 		logger.info("Start to load training instance and initialize model...");
-
-		instanceList = new Vector<PosInstance>();
-		posPipeList = new Vector<Pipe>();
+		
+		logger.info("load cluster file...");
+		clusterMap = PosIO.loadCluster(clusterFile);
+		logger.info("load cluster over!");
+		logger.info("there are " + clusterMap.size() + " words pair in cluster");
 
 		allLabel = new Vector<String>();
-
+		instanceList = new Vector<PosInstance>();
+		posPipeList = new Vector<Pipe>();
+		
 		logger.info("start to get instances from triang file...");
-		instanceList = PosIO.getPosInstanceFromNormalFile(trainingFile, allLabel);
+		instanceList = PosIO.getPosInstanceFromNormalFile(trainingFile, allLabel,clusterMap);
 
 		System.out.println(allLabel);
 
@@ -277,7 +285,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 	 * @param threadNum
 	 * @throws Exception
 	 */
-	private void PosAPTrainWithMultiThreads(String trainingFile, String modelFile, String dicFile, int iterator, String devFile, final double compressRatio, final int threadNum)
+	private void PosAPTrainWithMultiThreads(String trainingFile, String modelFile, String dicFile, String clusterFile,int iterator, String devFile, final double compressRatio, final int threadNum)
 			throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
@@ -285,7 +293,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 		logger.info("Start to train....");
 		long startTime = System.currentTimeMillis();
 		//load training instance and transform them to PosInstance, then initialize dictionary, allLabel and model
-		loadInstanceAndInit(trainingFile, dicFile);
+		loadInstanceAndInit(trainingFile, dicFile,clusterFile);
 
 		//set thread number, this is a static variable
 		PosAP.threadNum = threadNum;
@@ -305,7 +313,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 				//because the PosAP extends from PosViterbi and PosViterbi has implemented Runnable interface
 				//in ExecutorService, there are two submit methods, one uses a Runnable task as parameter and another uses a Callable task as parameter
 				//so we must use a cast to tell submit that we want use the submit which use a Callable parameter
-				results.add(exec.submit((Callable<Object[]>) new PosAP(model, posDic, allLabel, id, instanceList,
+				results.add(exec.submit((Callable<Object[]>) new PosAP(model, posDic, allLabel, clusterMap,id, instanceList,
 						posPipeList, finishSigle)));
 			}
 
@@ -331,7 +339,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 				model.useNum[i] += useNum[i];
 
 			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara, model.useNum);
-			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel);
+			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel,clusterMap);
 
 			// evaluate current model with development file
 			logger.info("Evaluate model for dev file with uncompressed model...");
@@ -344,10 +352,11 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 			if (compressRatio > 0)
 			{
 				OnlineLabelModel compressedModel = OnlineLabelModel.loadModel(modelFile + "-it-" + it);
-				tmpPosTagger = new PosAP(compressedModel, posDic, allLabel);
+				tmpPosTagger = new PosAP(compressedModel, posDic, allLabel,clusterMap);
 				logger.info("Evaluate compressed model for dev file with compressed model...");
 				devPre = tmpPosTagger.evalPos(devFile, it);
 				logger.info("the POS precision of compressed model for dev file is: " + devPre + "\n");
+				compressedModel = null;
 			}
 
 			model.parameter = tmpPara;
@@ -385,8 +394,9 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 				logger.info("thread " + id + ": " + (instIndex - startIndex + 1));
 
 			String[] sentence = instanceList.elementAt(instIndex).words;
+			String[] cluster = instanceList.elementAt(instIndex).cluster;
 			Vector<String> predLabel = new Vector<String>();
-			pos(sentence, predLabel);
+			pos(sentence, cluster,predLabel);
 
 			if (predLabel.size() != sentence.length)
 			{
@@ -399,10 +409,10 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 				continue;
 
 			String[] predArray = new String[predLabel.size()];
-			for (int m = 0; m < predArray.length; m++)
-				predArray[m] = predLabel.elementAt(m);
+			for (int i = 0;i < predLabel.size();i++)
+				predArray[i] = predLabel.elementAt(i);
 
-			PosInstance preInstance = new PosInstance(sentence, predArray);
+			PosInstance preInstance = new PosInstance(sentence,cluster, predArray);
 
 			// get feature vector of predicted result
 			Pipe predPipe = new Pipe(preInstance, model.featMap.feature2Int, posDic);

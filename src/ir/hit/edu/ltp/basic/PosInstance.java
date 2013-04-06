@@ -15,17 +15,20 @@ import ir.hit.edu.ltp.dic.*;
 public class PosInstance
 {
 	public String[] words;
+	public String[] cluster;
 	public String[] label;
 
 	public PosInstance(PosInstance inst)
 	{
 		this.words = inst.words;
+		this.cluster = inst.cluster;
 		this.label = inst.label.clone();
 	}
 
-	public PosInstance(String[] words, String[] label)
+	public PosInstance(String[] words, String[] cluster,String[] label)
 	{
 		this.words = words;
+		this.cluster = cluster;
 		this.label = label;
 	}
 
@@ -100,7 +103,6 @@ public class PosInstance
 		bf.delete(0, bf.length());
 		bf.append("BE=").append(curWord.charAt(0)).append("/").append(curWord.charAt(length - 1));
 		featVec.add(new String(bf));
-		bf = null;
 
 		// prefix
 		featVec.add("pf=" + curWord.substring(0, 1));
@@ -188,6 +190,23 @@ public class PosInstance
 		}
 		if (isLetter)
 			featVec.add("wT=l");
+		//word cluster feature
+		String preCluster = position > 0 ? cluster[position-1] : "_BC_";
+		String curCluster = cluster[position];
+		String nextCluster = position < cluster.length -1 ? cluster[position + 1] : "_EC_";
+		
+		bf.delete(0, bf.length());
+		bf.append("clt=").append(preCluster).append("/").append(curCluster).append("/").append(nextCluster);
+		featVec.add(new String(bf));
+		
+		String sPreCluster = preCluster.length() >= 6 ? preCluster.substring(0, 6) : preCluster;
+		String sCurCluster = curCluster.length() >= 6 ? curCluster.substring(0, 6) : curCluster;
+		String sNextCluster = nextCluster.length() >= 6 ? nextCluster.substring(0, 6) : nextCluster;
+		
+		bf.delete(0, bf.length());
+		bf.append("sclt=").append(sPreCluster).append("/").append(sCurCluster).append("/").append(sNextCluster);
+		featVec.add(new String(bf));
+		bf = null;
 
 		return featVec;
 	}

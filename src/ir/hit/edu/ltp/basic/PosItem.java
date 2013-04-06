@@ -13,10 +13,10 @@ public class PosItem
 	public double score;
 	public PosInstance inst;
 
-	public PosItem(double score, String[] sentence, String[] label)
+	public PosItem(double score, String[] sentence, String[] cluster,String[] label)
 	{
 		this.score = score;
-		this.inst = new PosInstance(sentence, label);
+		this.inst = new PosInstance(sentence, cluster,label);
 	}
 
 	public PosItem(PosItem item)

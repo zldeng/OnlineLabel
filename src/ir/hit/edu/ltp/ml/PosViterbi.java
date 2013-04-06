@@ -11,7 +11,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 import org.apache.log4j.Logger;
 
+import gnu.trove.map.hash.THashMap;
 import ir.hit.edu.ltp.basic.*;
+import ir.hit.edu.ltp.io.PosIO;
 import ir.hit.edu.ltp.model.*;
 import ir.hit.edu.ltp.util.CharType;
 import ir.hit.edu.ltp.dic.*;
@@ -29,23 +31,39 @@ public class PosViterbi implements Runnable
 	protected OnlineLabelModel model;
 	protected PosDic posDic;
 	protected Vector<String> allLabel;
+	protected THashMap<String, String> clusterMap;
 
 	//the three variables are use for Multi-Thread
 	private static InputStreams br;
 	private static OutputStreams wr;
 	private static int sentenceNum = 0;
 
-	public PosViterbi(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel)
+	public PosViterbi(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel,THashMap<String, String> clusterMap)
 	{
 		this.model = model;
 		this.posDic = posDic;
 		this.allLabel = allLabel;
+		this.clusterMap = clusterMap;
 	}
 
 	public PosViterbi()
 	{}
 
-	public double pos(String[] sentence, Vector<String> predLabel) throws UnsupportedEncodingException
+	public void pos(String[] sentence,Vector<String> predLabel) throws UnsupportedEncodingException
+	{
+		String[] cluster = new String[sentence.length];
+		for (int i = 0;i < sentence.length;i++)
+		{
+			if (clusterMap.containsKey(sentence[i]))
+				cluster[i] = clusterMap.get(sentence[i]);
+			else
+				cluster[i] = "null";
+		}
+		
+		pos(sentence,cluster,predLabel);
+	}
+	
+	protected double pos(String[] sentence,String[] cluster, Vector<String> predLabel) throws UnsupportedEncodingException
 	{
 		final int wordsNum = sentence.length;
 		Vector<Vector<PosItem>> itemVector = new Vector<Vector<PosItem>>();
@@ -71,7 +89,7 @@ public class PosViterbi implements Runnable
 
 					String[] tmpLabel = new String[wordsNum];
 					tmpLabel[i] = pos;
-					PosInstance inst = new PosInstance(sentence, tmpLabel);
+					PosInstance inst = new PosInstance(sentence,cluster, tmpLabel);
 					Vector<String> feature = inst.extractFeaturesFromInstanceInPosition(0, posDic);
 
 					String curLabel = "/cL=" + pos;
@@ -90,7 +108,7 @@ public class PosViterbi implements Runnable
 					int[] featInt = model.featVec2IntVec(newFeat);
 					double score = model.getScore(featInt);
 
-					PosItem item = new PosItem(score, sentence, tmpLabel);
+					PosItem item = new PosItem(score, sentence,cluster, tmpLabel);
 					itemVector.elementAt(0).add(item);
 				}
 			}
@@ -108,7 +126,7 @@ public class PosViterbi implements Runnable
 						String[] preLabel = itemVector.elementAt(i - 1).elementAt(k).inst.label.clone();
 						preLabel[i] = newPos;
 
-						PosInstance tmpInst = new PosInstance(sentence, preLabel);
+						PosInstance tmpInst = new PosInstance(sentence, cluster,preLabel);
 
 						Vector<String> featVec = tmpInst.extractFeaturesFromInstanceInPosition(i, posDic);
 
@@ -131,7 +149,7 @@ public class PosViterbi implements Runnable
 						if (maxScore < tmpScore)
 						{
 							maxScore = tmpScore;
-							maxItem = new PosItem(tmpScore, sentence, preLabel);
+							maxItem = new PosItem(tmpScore, sentence,cluster, preLabel);
 						}
 					}
 
@@ -252,7 +270,7 @@ public class PosViterbi implements Runnable
 		Thread[] threadVec = new Thread[threadNum];
 		for (int i = 0; i < threadNum; i++)
 		{
-			threadVec[i] = new Thread(new PosViterbi(model, posDic, allLabel));
+			threadVec[i] = new Thread(new PosViterbi(model, posDic, allLabel,clusterMap));
 			threadVec[i].start();
 		}
 
@@ -339,12 +357,14 @@ public class PosViterbi implements Runnable
 	 * @param dicFile
 	 * @throws Exception
 	 */
-	public void loadResource(String modelFile, String dicFile) throws Exception
+	public void loadResource(String modelFile, String dicFile,String clusterFile) throws Exception
 	{
 		Logger logger = Logger.getLogger("pos");
 		logger.info("load resource...");
 		long startTime = System.currentTimeMillis();
 
+		clusterMap = PosIO.loadCluster(clusterFile);
+		
 		model = OnlineLabelModel.loadModel(modelFile);
 		allLabel = new Vector<String>();
 		for (int i = 0; i < model.featMap.int2Label.size(); i++)

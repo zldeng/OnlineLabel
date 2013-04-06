@@ -15,7 +15,7 @@ import org.apache.commons.cli.PosixParser;
 public class ParaOption
 {
 	CommandLine cmd;
-	public String trainFile, devFile, testFile, dicFile, resultFile, modelFile;
+	public String trainFile, devFile, testFile, dicFile, resultFile, modelFile, clusterFile;
 	public int iterator, threadNum;
 	public boolean train = false, test = false;
 	public double compressRatio = 0;
@@ -28,6 +28,7 @@ public class ParaOption
 		option.addOption("test", false, "test model");
 		option.addOption("trainFile", true, "train file");
 		option.addOption("dicFile", true, "dictionary file");
+		option.addOption("clusterFile", true, "word cluster file");
 		option.addOption("model", true, "model file");
 		option.addOption("iterator", true, "iterator time");
 		option.addOption("devFile", true, "dev file");
@@ -76,13 +77,15 @@ public class ParaOption
 				compressRatio = Double.parseDouble(cmd.getOptionValue("compress"));
 			else
 				compressRatio = 0;
+
+			if (cmd.hasOption("clusterFile"))
+				clusterFile = cmd.getOptionValue("clusterFile");
 		}
 		else if (cmd.hasOption("test"))
 		{
 			if (!(cmd.hasOption("testFile") && cmd.hasOption("model") && cmd.hasOption("result") && cmd
 					.hasOption("dicFile")))
 			{
-				//				printUsag();
 				flag = false;
 			}
 			test = true;
@@ -95,10 +98,13 @@ public class ParaOption
 				threadNum = Integer.parseInt(cmd.getOptionValue("thread"));
 			else
 				threadNum = 1;
+
+			if (cmd.hasOption("clusterFile"))
+				clusterFile = cmd.getOptionValue("clusterFile");
+
 		}
 		else
 		{
-			//			printUsag();
 			flag = false;
 		}
 
