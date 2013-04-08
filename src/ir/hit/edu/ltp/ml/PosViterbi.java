@@ -49,18 +49,20 @@ public class PosViterbi implements Runnable
 	public PosViterbi()
 	{}
 
-	public void pos(String[] sentence,Vector<String> predLabel) throws UnsupportedEncodingException
+	public void pos(Vector<String> sentence,Vector<String> predLabel) throws UnsupportedEncodingException
 	{
-		String[] cluster = new String[sentence.length];
-		for (int i = 0;i < sentence.length;i++)
+		String[] wordArray = new String[sentence.size()];
+		sentence.toArray(wordArray);
+		String[] cluster = new String[wordArray.length];
+		for (int i = 0;i < wordArray.length;i++)
 		{
-			if (clusterMap.containsKey(sentence[i]))
-				cluster[i] = clusterMap.get(sentence[i]);
+			if (clusterMap.containsKey(wordArray[i]))
+				cluster[i] = clusterMap.get(wordArray[i]);
 			else
 				cluster[i] = "null";
 		}
 		
-		pos(sentence,cluster,predLabel);
+		pos(wordArray,cluster,predLabel);
 	}
 	
 	protected double pos(String[] sentence,String[] cluster, Vector<String> predLabel) throws UnsupportedEncodingException
@@ -222,10 +224,13 @@ public class PosViterbi implements Runnable
 			if (line.trim().equals(""))
 				continue;
 			String[] sentence = line.trim().split(" ");
-
+			Vector<String> words = new Vector<String>();
+			for (String word : sentence)
+				words.add(word);
+			
 			Vector<String> result = new Vector<String>();
 
-			pos(sentence, result);
+			pos(words, result);
 			String resultStr = "";
 			for (int i = 0; i < sentence.length; i++)
 				resultStr += sentence[i] + "_" + result.elementAt(i) + " ";
@@ -318,8 +323,11 @@ public class PosViterbi implements Runnable
 				goldLabel[i] = pair[1];
 			}
 
+			Vector<String> words = new Vector<String>();
+			for (String str : sentence)
+				words.add(str);
 			Vector<String> predLabel = new Vector<String>();
-			pos(sentence, predLabel);
+			pos(words, predLabel);
 
 			String str = "";
 			for (int i = 0; i < sentence.length; i++)
@@ -399,8 +407,12 @@ public class PosViterbi implements Runnable
 				line = line.replaceAll("\\s{2,}", " ");
 				String[] sentence = line.trim().split(" ");
 				Vector<String> result = new Vector<String>();
-
-				pos(sentence, result);
+				
+				Vector<String> words = new Vector<String>();
+				for (String str : sentence)
+					words.add(str);
+				
+				pos(words, result);
 				String resultStr = "";
 				for (int i = 0; i < sentence.length; i++)
 					resultStr += sentence[i] + "_" + result.elementAt(i) + " ";

@@ -44,7 +44,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 
 	}
 
-	public PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel, THashMap<String, String> clusterMap,int id,
+	private PosAP(OnlineLabelModel model, PosDic posDic, Vector<String> allLabel, THashMap<String, String> clusterMap,int id,
 			Vector<PosInstance> instanceList, Vector<Pipe> posPipeList, CountDownLatch finishSigle)
 	{
 		this.model = new OnlineLabelModel(model.featMap);
@@ -188,7 +188,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 			// output model in each iterator
 			// user can get the best model according the evaluation result
 			// get current model
-			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap);
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap,it+1,instanceList.size());
 			for (int i = 0; i < model.featMap.feature2Int.size(); i++)
 			{
 				tmpModel.parameter[i] = (float) (total[i] / (instanceList.size() * (it + 1)));
@@ -217,7 +217,6 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 			}
 
 			tmpPosTagger = null;
-
 		}
 
 		logger.info("train over!");
@@ -338,7 +337,7 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 			for (int i = 0;i < useNum.length;i++)
 				model.useNum[i] += useNum[i];
 
-			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara, model.useNum);
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara, model.useNum,it+1,instanceList.size());
 			PosAP tmpPosTagger = new PosAP(tmpModel, posDic, allLabel,clusterMap);
 
 			// evaluate current model with development file
@@ -436,5 +435,5 @@ public class PosAP extends PosViterbi implements Callable<Object[]>
 	public Object[] call() throws Exception
 	{
 		return trainWithSubInstance();
-	}
+	}	
 }

@@ -59,15 +59,18 @@ public class Test
 		posTagger.PosForFile(posFile, posResult2, threadNum);
 
 		//POS for a segmented sentence
-		String posSen = "我 爱 哈尔滨 ！";
-		String[] segSen = posSen.split(" ");
-
+		Vector<String> segSen = new Vector<String>();
+		segSen.add("我");
+		segSen.add("爱");
+		segSen.add("哈尔滨");
+		segSen.add("！");
+		
 		result = new Vector<String>();
 		posTagger.pos(segSen, result);
 
 		String str = "";
 		for (int i = 0; i < result.size(); i++)
-			str += segSen[i] + "_" + result.elementAt(i) + " ";
+			str += segSen.elementAt(i) + "_" + result.elementAt(i) + " ";
 		System.out.println(str);
 	}
 }

@@ -157,7 +157,7 @@ public class SegAP extends SegViterbi implements Callable<Object[]>
 
 			logger.info("finish iterator " + it + "\n");
 
-			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap);
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap,it+1,instanceList.size());
 			for (int i = 0; i < tmpModel.parameter.length; i++)
 			{
 				tmpModel.parameter[i] = (float) (total[i] / (instanceList.size() * (it + 1)));
@@ -304,7 +304,7 @@ public class SegAP extends SegViterbi implements Callable<Object[]>
 			for (int i = 0;i < useNum.length;i++)
 				model.useNum[i] += useNum[i];
 
-			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara,model.useNum);
+			OnlineLabelModel tmpModel = new OnlineLabelModel(model.featMap, tmpPara,model.useNum,it+1,instanceList.size());
 			SegAP tmpSegger = new SegAP(tmpModel, segDic, allLabel);
 
 			// evaluate current model with dev file

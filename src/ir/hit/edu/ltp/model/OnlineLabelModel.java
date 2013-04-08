@@ -24,27 +24,45 @@ public class OnlineLabelModel
 {
 	public FeatureMap featMap;
 	public float[] parameter;
+	
+	public int iteratorNum;
+	public int instanceNum;
 
 	public long[] useNum;
 
-	public OnlineLabelModel(FeatureMap fm, float[] parameter)
+	public OnlineLabelModel(FeatureMap fm, float[] parameter,final int itNum,final int instNum)
 	{
 		this.featMap = fm;
 		this.parameter = parameter;
+		this.iteratorNum = itNum;
+		this.instanceNum = instNum;
 	}
 
-	public OnlineLabelModel(FeatureMap fm, float[] parameter, long[] useNum)
+	public OnlineLabelModel(FeatureMap fm, float[] parameter, long[] useNum,final int itNum,final int instNum)
 	{
 		this.featMap = fm;
 		this.parameter = parameter;
 		this.useNum = useNum;
+		this.iteratorNum = itNum;
+		this.instanceNum = instNum;
 	}
 
+	public OnlineLabelModel(FeatureMap fm,final int itNum,final int instNum)
+	{
+		this.featMap = fm;
+		parameter = new float[fm.feature2Int.size()];
+		useNum = new long[fm.feature2Int.size()];
+		this.iteratorNum = itNum;
+		this.instanceNum = instNum;
+	}
+	
 	public OnlineLabelModel(FeatureMap fm)
 	{
 		this.featMap = fm;
 		parameter = new float[fm.feature2Int.size()];
 		useNum = new long[fm.feature2Int.size()];
+		this.iteratorNum = 0;
+		this.instanceNum = 0;
 	}
 
 	// get score according feature vector
@@ -159,6 +177,9 @@ public class OnlineLabelModel
 			threshold = weight.elementAt((int) (weight.size() * ratio));
 		}
 
+		wr.writeInt(instanceNum);
+		wr.writeInt(iteratorNum);
+		
 		wr.writeUTF("#label");
 		wr.writeInt(featMap.int2Label.size());
 
@@ -221,6 +242,9 @@ public class OnlineLabelModel
 		THashMap<String, Integer> label2Int = new THashMap<String, Integer>();
 		THashMap<Integer, String> int2Label = new THashMap<Integer, String>();
 
+		final int instNum = br.readInt();
+		final int itNum = br.readInt();
+		
 		String line;
 		while ((line = br.readUTF()) != null && !line.equals("#label"))
 			continue;
@@ -259,7 +283,7 @@ public class OnlineLabelModel
 		}
 
 		FeatureMap featMap = new FeatureMap(feat2Int, label2Int, int2Label);
-		OnlineLabelModel model = new OnlineLabelModel(featMap, tmpParameter);
+		OnlineLabelModel model = new OnlineLabelModel(featMap, tmpParameter,itNum,instNum);
 
 		br.close();
 		return model;
