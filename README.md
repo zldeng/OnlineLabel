@@ -17,9 +17,11 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 在训练时需要提供开发集。在训练过程中会保存每轮迭代产生的模型，并使用开发集对模型进行性能评价。用户可根据训练的log文件件选择性能最优的模型。当然保存每轮迭代的模型造成了训练时间的增加。	
 
-从命令行进行分词训练和测试命令可参考scripts目录下的seg.train.sh和seg.test.sh文件
+从命令行进行分词训练和测试命令可参考scripts目录下的seg-train.sh和seg-test.sh文件
 
-从命令行进行词性标注训练和测试命令可参考scripts目录下的pos.train.sh和pos.test.sh文件
+系统同时提供了基于stacked learning的分词，分词训练和测试可参考scripts目录下的seg-stacked.train.sh和seg-stacked.test.sh
+
+从命令行进行词性标注训练和测试命令可参考scripts目录下的pos-train.sh和pos-test.sh文件
 
 目前系统提供了模型压缩功能，在训练时通过设定模型特征删除比例来控制删除的特征数量。该参数是可选的，默认对模型不进行压缩。特征删除比例通过参数“-compress”选项进行设置，具体使用可参考pos.train.sh和seg.train.sh文件。
 
@@ -30,20 +32,22 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 ###data目录：
 
-（1）pos
+（1）Conll06
 
 * conll06.pos.dic：conll06训练语料中抽取的词性标注词典，词典获取的方法是保存训练语料中出现次数大于等于3次的词语及相关词性。
 * dev.conll06.pos.gold：conll06语料词性标注开发集gold文件
 * test.conll06.seg：conll06语料词性标注测试集文件
 * test.conll06.pos：conll06语料词性标注测试集gold文件
 * pos.tran.sample：词性标注训练语料样例
+* pos.test.sample：词性标注测试语料样例
 
-（2）seg
+（2）PKU
 
 * pku_training.dic.utf8： PKU训练语料词典。词典内容为训练语料中统计词频大于等于3的词语。
 * pku.test.gold：PKU语料测试集gold文件
 * pku.test：PKU语料测试集文件
 * seg.train.sample：分词训练语料样例
+* seg.test.sample：分词测试语料样例
 	
 ###lib目录：
 
@@ -59,10 +63,12 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 ###scripts目录：
 
-* pos.train.sh：词性标注训练命令示例
-* pos.test.sh：词性标注测试命令示例
-* seg.train.sh：分词训练命令示例
-* seg.test.sh：分词测试命令示例
+* pos-train.sh：词性标注训练命令示例
+* pos-test.sh：词性标注测试命令示例
+* seg-train.sh：分词训练命令示例
+* seg-test.sh：分词测试命令示例
+* seg-stacked.train.sh：使用stacked learning方法分词训练示例
+* seg-stacked.test.sh：使用stacked learning方法分词测试示例
 
 ###Tools目录：
 
@@ -155,13 +161,11 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 ###分词模型下载地址：
 
 * [PKU](http://ir.hit.edu.cn/~zldeng/word_segment_data/pku-seg.zip)
-* [CTB5.0](http://ir.hit.edu.cn/~zldeng/word_segment_data/ctb5.0-seg.zip)
 * [人民日报](http://ir.hit.edu.cn/~zldeng/word_segment_data/peopleDaily1998-seg.zip)
 
 ###分词模型性能：
 
-* PKU性能：P： 94.6% R： 94.8% F：94.7%
-* CTB5.0性能：开发集：P： 94.38% R：94.62% F： 94.50%	测试集：P：96.64% R：97.71%  F：97.18%
+* PKU性能：P： 95.02% R： 95.00% F：95.01%
 * 人民日报使用1月份语料测试：P：97.10% R：97.58 F：97.34%
 
 ###词性标注：
@@ -171,11 +175,9 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 ###词性标注模型下载地址：
 
 * [conll06](http://ir.hit.edu.cn/~zldeng/POS_Tagger_data/conll06-pos.zip)
-* [CTB5.0](http://ir.hit.edu.cn/~zldeng/POS_Tagger_data/ctb5.0-pos.zip)
 * [人民日报](http://ir.hit.edu.cn/~zldeng/POS_Tagger_data/peopleDaily1998-pos.zip)
 
 ###词性标注模型性能：	
 
-* conll06性能：开发集：94.3%，测试集：93.7%
-* CTB5.0性能：开发集：95.19% 测试集：94.71%
+* conll06性能：开发集：94.29%，测试集：93.74%
 * 人民日报使用1月份语料进行测试，性能为：97.98%
