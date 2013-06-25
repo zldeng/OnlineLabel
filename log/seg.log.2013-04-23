@@ -1,0 +1,81 @@
+2013-04-23 15:03:43 [INFO] 
+
+
+*********** welcome ******************
+
+2013-04-23 15:03:43 [INFO] Training file: ./base/seg.train.sample
+2013-04-23 15:03:43 [INFO] Dev file: ./base/dev.utf8
+2013-04-23 15:03:43 [INFO] base dictionary file: ./base/pku_train-0-10000.utf8.dic
+2013-04-23 15:03:43 [INFO] base model file: ./base/seg-pku-10000-baseline.model
+2013-04-23 15:03:43 [INFO] stacked model file: ./base/new.model
+2013-04-23 15:03:43 [INFO] stacked dictionary file: ./base/train.dic
+2013-04-23 15:03:43 [INFO] Iterator number: 3
+2013-04-23 15:03:43 [INFO] compression ratio: 0.0
+2013-04-23 15:03:43 [INFO] start to train...
+2013-04-23 15:03:43 [INFO] training start...
+2013-04-23 15:03:43 [INFO] Start to load training instance and initialize model...
+2013-04-23 15:03:43 [INFO] start to get seg dictionary from stacked dictionary file...
+2013-04-23 15:03:43 [INFO] finish geting stacked dictionary!
+2013-04-23 15:03:43 [INFO] There are total 109740 words in stacked dictionary
+
+2013-04-23 15:03:43 [INFO] load char type...
+2013-04-23 15:03:43 [INFO] load char type over!
+
+2013-04-23 15:03:43 [INFO] start to get base resource...
+2013-04-23 15:03:46 [INFO] load base resource over!
+2013-04-23 15:03:46 [INFO] load instance from training file...
+2013-04-23 15:03:46 [INFO] instance number: 4
+2013-04-23 15:03:46 [INFO] extract features from instance and map SegInstance to SegPipe...
+2013-04-23 15:03:46 [INFO] there are total 43116 features
+2013-04-23 15:03:46 [INFO] there are total 4 labels
+
+2013-04-23 15:03:46 [INFO] load instance and initialize model over!
+2013-04-23 15:03:46 [INFO] start iterator 0...
+2013-04-23 15:03:46 [INFO] Shuffle instance order...
+2013-04-23 15:03:47 [INFO] finish iterator 0
+
+2013-04-23 15:03:47 [INFO] evaluate uncompressed model with dev file...
+2013-04-23 15:03:47 [INFO] the evaluation result of uncompressed P: 43.47826086956522 R: 13.698630136986301 F: 20.833333333333332
+
+2013-04-23 15:03:47 [INFO] writer model to file...
+
+2013-04-23 15:03:47 [INFO] start iterator 1...
+2013-04-23 15:03:47 [INFO] Shuffle instance order...
+2013-04-23 15:03:47 [INFO] finish iterator 1
+
+2013-04-23 15:03:47 [INFO] evaluate uncompressed model with dev file...
+2013-04-23 15:03:47 [INFO] the evaluation result of uncompressed P: 75.67567567567568 R: 76.71232876712328 F: 76.1904761904762
+
+2013-04-23 15:03:47 [INFO] writer model to file...
+
+2013-04-23 15:03:47 [INFO] start iterator 2...
+2013-04-23 15:03:47 [INFO] Shuffle instance order...
+2013-04-23 15:03:47 [INFO] finish iterator 2
+
+2013-04-23 15:03:47 [INFO] evaluate uncompressed model with dev file...
+2013-04-23 15:03:48 [INFO] the evaluation result of uncompressed P: 65.55555555555556 R: 80.82191780821918 F: 72.39263803680981
+
+2013-04-23 15:03:48 [INFO] writer model to file...
+
+2013-04-23 15:03:48 [INFO] training over!
+2013-04-23 15:03:48 [INFO] training time: 4 S
+2013-04-23 15:11:50 [INFO] 
+
+
+*********** welcome ******************
+
+2013-04-23 15:11:50 [INFO] base model file: ./base/seg-pku-10000-baseline.model
+2013-04-23 15:11:50 [INFO] base dic file: ./base/pku_train-0-10000.utf8.dic
+2013-04-23 15:11:50 [INFO] stacked model file: ./base/new.model-it-2
+2013-04-23 15:11:50 [INFO] Dictionary file: ./base/train.dic
+2013-04-23 15:11:50 [INFO] Test file: ./base/test.txt
+2013-04-23 15:11:50 [INFO] Result file: ./base/result.txt
+2013-04-23 15:11:50 [INFO] testing start...
+2013-04-23 15:11:50 [INFO] load resource...
+2013-04-23 15:11:50 [INFO] load dictionary time: 0 s
+2013-04-23 15:11:53 [INFO] load resource over!
+2013-04-23 15:11:53 [INFO] loading source time: 2 s
+
+2013-04-23 15:11:53 [INFO] begin to test...
+2013-04-23 15:11:53 [INFO] finish testing!
+2013-04-23 15:11:53 [INFO] test time : 0 s

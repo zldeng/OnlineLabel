@@ -1,0 +1,56 @@
+2013-03-30 09:54:40 [INFO] 
+
+
+*********** welcome ******************
+
+2013-03-30 09:54:40 [INFO] Usag:
+2013-03-30 09:54:40 [INFO] train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum
+2013-03-30 09:54:40 [INFO] test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum 
+
+2013-03-30 10:03:03 [INFO] 
+
+
+*********** welcome ******************
+
+2013-03-30 10:03:03 [INFO] Usag:
+2013-03-30 10:03:03 [INFO] train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum
+2013-03-30 10:03:03 [INFO] test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum 
+
+2013-03-30 10:05:44 [INFO] 
+
+
+*********** welcome ******************
+
+2013-03-30 10:05:44 [INFO] Usag:
+2013-03-30 10:05:44 [INFO] train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum
+2013-03-30 10:05:44 [INFO] test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum 
+
+2013-03-30 10:06:35 [INFO] 
+
+
+*********** welcome ******************
+
+2013-03-30 10:06:35 [INFO] Usag:
+2013-03-30 10:06:35 [INFO] train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum
+2013-03-30 10:06:35 [INFO] test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum 
+
+2013-03-30 10:22:48 [INFO] load resource...
+2013-03-30 10:22:48 [INFO] load dictionary time: 0 s
+2013-03-30 10:22:49 [INFO] load model time: 1 s
+2013-03-30 10:22:49 [INFO] load resource over!
+2013-03-30 10:22:49 [INFO] loading source time: 1 s
+
+2013-03-30 10:22:51 [INFO] begin to test...
+2013-03-30 10:22:57 [INFO] sentence 500
+2013-03-30 10:23:03 [INFO] sentence 1000
+2013-03-30 10:23:11 [INFO] sentence 1500
+2013-03-30 10:23:17 [INFO] testing over!
+2013-03-30 10:23:17 [INFO] testing time: 25 s
+
+2013-03-30 10:23:17 [INFO] begin to test...
+2013-03-30 10:23:19 [INFO] sentence 500
+2013-03-30 10:23:21 [INFO] sentence 1000
+2013-03-30 10:23:24 [INFO] sentence 1500
+2013-03-30 10:23:25 [INFO] test finish!
+2013-03-30 10:23:25 [INFO] test time: 8 s
+

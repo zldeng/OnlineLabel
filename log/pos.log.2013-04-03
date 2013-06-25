@@ -1,0 +1,9 @@
+2013-04-03 10:05:48 [INFO] 
+
+
+*********** welcome ******************
+
+2013-04-03 10:05:48 [INFO] Usag:
+2013-04-03 10:05:48 [INFO] train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlinePos -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum
+2013-04-03 10:05:48 [INFO] test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlinePos -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum 
+

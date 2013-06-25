@@ -1,0 +1,27 @@
+2013-03-30 10:23:25 [INFO] load resource...
+2013-03-30 10:23:26 [INFO] load resource over!
+2013-03-30 10:23:26 [INFO] loading source time: 0 s
+
+2013-03-30 10:23:26 [INFO] begin to test...
+2013-03-30 10:23:27 [INFO] sentence 199
+2013-03-30 10:23:29 [INFO] sentence 399
+2013-03-30 10:23:30 [INFO] sentence 599
+2013-03-30 10:23:32 [INFO] sentence 799
+2013-03-30 10:23:33 [INFO] sentence 999
+2013-03-30 10:23:35 [INFO] sentence 1199
+2013-03-30 10:23:36 [INFO] sentence 1399
+2013-03-30 10:23:39 [INFO] sentence 1599
+2013-03-30 10:23:42 [INFO] sentence 1799
+2013-03-30 10:23:43 [INFO] testing over!
+2013-03-30 10:23:43 [INFO] testing time: 16 s
+
+2013-03-30 10:23:43 [INFO] begin to test...
+2013-03-30 10:23:43 [INFO] sentence 300
+2013-03-30 10:23:44 [INFO] sentence 600
+2013-03-30 10:23:45 [INFO] sentence 900
+2013-03-30 10:23:45 [INFO] sentence 1200
+2013-03-30 10:23:46 [INFO] sentence 1500
+2013-03-30 10:23:48 [INFO] sentence 1800
+2013-03-30 10:23:48 [INFO] test finish!
+2013-03-30 10:23:48 [INFO] test time: 5 s
+

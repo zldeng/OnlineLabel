@@ -1,0 +1,1 @@
+nohup java -Xms5G -Xmx30G -cp online-label.jar   ir.hit.edu.ltp.label.OnlineSeg \ -stackedTest \ -dicFile   ./data/seg.utf8.dic \ -baseModel ./data/seg-baseline.model \ -baseDic   ./data/seg-baseline.dic.uft8 \ -model    ./model/seg-stacked.model \ -testFile ./data/seg-test.utf8 \ -result ./data/stacked-stacked.result &

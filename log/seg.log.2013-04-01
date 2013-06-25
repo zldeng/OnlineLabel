@@ -1,0 +1,98 @@
+2013-04-01 10:08:10 [INFO] load resource...
+2013-04-01 10:08:11 [INFO] load dictionary time: 0 s
+2013-04-01 10:08:12 [INFO] load model time: 1 s
+2013-04-01 10:08:12 [INFO] load resource over!
+2013-04-01 10:08:12 [INFO] loading source time: 1 s
+
+2013-04-01 10:08:12 [INFO] begin to test...
+2013-04-01 10:08:17 [INFO] sentence 500
+2013-04-01 10:08:24 [INFO] sentence 1000
+2013-04-01 10:08:32 [INFO] sentence 1500
+2013-04-01 10:08:38 [INFO] testing over!
+2013-04-01 10:08:38 [INFO] testing time: 26 s
+
+2013-04-01 10:08:38 [INFO] begin to test...
+2013-04-01 10:08:40 [INFO] sentence 500
+2013-04-01 10:08:42 [INFO] sentence 1000
+2013-04-01 10:08:45 [INFO] sentence 1500
+2013-04-01 10:08:47 [INFO] test finish!
+2013-04-01 10:08:47 [INFO] test time: 8 s
+
+2013-04-01 16:25:42 [INFO] 
+
+
+*********** welcome ******************
+
+2013-04-01 16:25:42 [INFO] Usag:
+2013-04-01 16:25:42 [INFO] train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum
+2013-04-01 16:25:42 [INFO] test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum 
+
+2013-04-01 16:43:40 [INFO] 
+
+
+*********** welcome ******************
+
+2013-04-01 16:43:40 [INFO] Training file: ./data/pos/pos.train.sample
+2013-04-01 16:43:40 [INFO] Dev file: ./data/pos/pos.test.sample
+2013-04-01 16:43:40 [INFO] Dictionary file: ./data/pos/conll06.pos.dic
+2013-04-01 16:43:40 [INFO] Model file: ./model/pos.m
+2013-04-01 16:43:40 [INFO] Iterator number: 3
+2013-04-01 16:43:40 [INFO] thread number: 1
+2013-04-01 16:43:40 [INFO] compress ratio: 0.0
+
+2013-04-01 16:43:40 [INFO] start to train....
+2013-04-01 16:43:40 [INFO] training start...
+2013-04-01 16:43:40 [INFO] Start to load training instance and initialize model...
+2013-04-01 16:43:40 [INFO] start to get seg dictionary from dictionary file...
+2013-04-01 16:43:40 [INFO] finish geting seg dictionary!
+2013-04-01 16:43:40 [INFO] There are total 12264 words in segmentation dictionary
+
+2013-04-01 16:43:40 [INFO] load char type...
+2013-04-01 16:43:40 [INFO] load char type over!
+
+2013-04-01 16:43:40 [INFO] load instance from training file...
+2013-04-01 16:43:40 [INFO] instance number: 22
+2013-04-01 16:43:40 [INFO] extract features from instance and map SegInstance to SegPipe...
+2013-04-01 16:43:41 [INFO] there are total 40280 features
+2013-04-01 16:43:41 [INFO] there are total 4 labels
+
+2013-04-01 16:43:41 [INFO] load instance and initialize model over!
+2013-04-01 16:43:41 [INFO] start iterator 0...
+2013-04-01 16:43:41 [INFO] Shuffle instance order...
+2013-04-01 16:43:41 [INFO] finish iterator 0
+
+2013-04-01 16:43:41 [INFO] evaluate uncompressed model with dev file...
+2013-04-01 16:43:42 [INFO] the evaluation result of uncompressed P: 100.0 R: 100.0 F: 100.0
+
+2013-04-01 16:43:42 [INFO] writer model to file...
+
+2013-04-01 16:43:42 [INFO] start iterator 1...
+2013-04-01 16:43:42 [INFO] Shuffle instance order...
+2013-04-01 16:43:42 [INFO] finish iterator 1
+
+2013-04-01 16:43:42 [INFO] evaluate uncompressed model with dev file...
+2013-04-01 16:43:42 [INFO] the evaluation result of uncompressed P: 100.0 R: 100.0 F: 100.0
+
+2013-04-01 16:43:42 [INFO] writer model to file...
+
+2013-04-01 16:43:42 [INFO] start iterator 2...
+2013-04-01 16:43:42 [INFO] Shuffle instance order...
+2013-04-01 16:43:43 [INFO] finish iterator 2
+
+2013-04-01 16:43:43 [INFO] evaluate uncompressed model with dev file...
+2013-04-01 16:43:43 [INFO] the evaluation result of uncompressed P: 100.0 R: 100.0 F: 100.0
+
+2013-04-01 16:43:43 [INFO] writer model to file...
+
+2013-04-01 16:43:43 [INFO] training over!
+2013-04-01 16:43:43 [INFO] training time: 2 s
+
+2013-04-01 19:14:45 [INFO] 
+
+
+*********** welcome ******************
+
+2013-04-01 19:14:45 [INFO] Usag:
+2013-04-01 19:14:45 [INFO] train: java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -train -trainFile train_file -dicFile dic_file -model model_file -iterator iterator -devFile dev_file [opt]-compress compressRetio [opt]-thread threadNum
+2013-04-01 19:14:45 [INFO] test:  java -cp onlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg -test -model model_file -dicFile dic_file -testFile test_file -result result_file [opt]-thread threadNum 
+

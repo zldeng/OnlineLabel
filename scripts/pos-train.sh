@@ -1,0 +1,1 @@
+nohup java -Xms5G -Xmx30G -cp online-label.jar  ir.hit.edu.ltp.label.OnlinePos -train \ -trainFile ./data/conll06/train.conll06.pos \ -dicFile   ./data/conll06/conll06.pos.dic \ -model  ./model/conll06/conll06-pos.model \ -iterator 25  \ -devFile  ./data/conll06/dev.conll06.pos &
