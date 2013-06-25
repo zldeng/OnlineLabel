@@ -1,1 +1,0 @@
-nohup java -Xms15G -Xmx50G -cp OnlineLabel.jar ir.hit.edu.ltp.parser.OnlineSeg  -test  -model ./model/pku.seg.model -dicFile ./data/seg/pku.seg.dic  -testFile ./data/seg/pku.test  -result  ./data/seg/pku.test.result [opt]-thread threadNum&
