@@ -1,4 +1,4 @@
-#OnlineLabel
+# OnlineLabel
 
 简介
 ---
@@ -30,7 +30,7 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 文件说明：
 ---
 
-###data目录：
+### data目录：
 
 （1）Conll06
 
@@ -49,7 +49,7 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 * seg.train.sample：分词训练语料样例
 * seg.test.sample：分词测试语料样例
 	
-###lib目录：
+### lib目录：
 
 包含系统引用的jar包 
 
@@ -57,11 +57,11 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 存放相关的配置文件。目前只包含log4j的配置文件。
 
-###log目录：
+### log目录：
 
 存放系统运行的log文件。log文件的文件名可在config目录下的配置文件中进行更改。
 
-###scripts目录：
+### scripts目录：
 
 * pos-train.sh：词性标注训练命令示例
 * pos-test.sh：词性标注测试命令示例
@@ -70,7 +70,7 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 * seg-stacked.train.sh：使用stacked learning方法分词训练示例
 * seg-stacked.test.sh：使用stacked learning方法分词测试示例
 
-###Tools目录：
+### Tools目录：
 
 * GetPosDic.java：从词性标注训练语料中获取词性标注词典
 * GetSegDic.java：从分词训练语料中获取分词词典
@@ -81,55 +81,55 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 词性标注使用的特征：
 ---
 
-###词语的n_gram特征：	
+### 词语的n_gram特征：	
 
 * w_i (i = -2,-1,0,1,2)
 * w_i,w_i+1 (i = -1,0)
 * w_-1,w_1
 
-###词边界特征：
+### 词边界特征：
 
 * last_char(w_-1)w_0
 * first_char(w_0)w_1
 * 其中first_char和last_char表示词语的第一个和最后一个字
 
-###词前后缀信息：
+### 词前后缀信息：
 
 * first_char(w_0)last_char(w_0)
 * prefix(w_0,i) (i =1,2,3)
 * suffix(w_0,i) (i = 1,2,3)
 * 其中prefix代表词长度为i的前缀，suffix代表词长度为i的后缀
 
-###词长度信息：
+### 词长度信息：
 
 * len(w_0)。词的长度大于五的时候，统一使用五表示
 
-###词典信息：
+### 词典信息：
 
 * postag_lexicon(w_0)。表示词语在词典中的候选词性
 
-###叠字信息：
+### 叠字信息：
 
 * 词语中每一个字和词语中的第一个字的组合
 * 词语中的每一个字和词语的最后一个字的组合
 * 词语中的第i个字和第i+1个字是否相同
 * 词语中的第i个字和第i+2个字是否相同
 
-###词语类别信息：
+### 词语类别信息：
 
 * digit，letter，punctuation以及other
 
 分词使用的特征：
 ---
 
-###字符n_gram特征：
+### 字符n_gram特征：
 
 * c_i (i = -2,-1,0,1,2)
 * c_i,c_i+1 (i = -2,-1,0,1)
 * c_i,c_i+2 (i = -2,-1,0)
 * c_i,c_i+1,c_i+2 (i = -1)
 
-###叠字信息：
+### 叠字信息：
 
 * dup(c_i,c_i+1) ：c_i和c_i+1是否是相同字
 * dup(c_i,c_i+2) ：c_i和c_i+2是否是相同字
@@ -154,16 +154,16 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 由于版权限制，本系统不提供训练语料。但是提供使用各种语料训练好的模型。
 由于github在clone时速度的限制，因此将模型文件保存在SCIR服务器上，如果需要可到服务器下载，在服务器上同时还提供了从各个训练语料中提取的词典文件。
 
-###分词：
+### 分词：
 
 分词分别使用了PKU、CTB5.0以及人民日报1998年1-6月份语料训练模型。CTB5.0和PKU均是按照常使用的划分标准进行数据划分，人民日报使用2-6月份训练。
 
-###分词模型下载地址：
+### 分词模型下载地址：
 
 * [PKU](http://ir.hit.edu.cn/~zldeng/word_segment_data/pku-seg.zip)
 * [人民日报](http://ir.hit.edu.cn/~zldeng/word_segment_data/peopleDaily1998-seg.zip)
 
-###分词模型性能：
+### 分词模型性能：
 
 * PKU性能：P： 95.02% R： 95.00% F：95.01%
 * 人民日报使用1月份语料测试：P：97.10% R：97.58 F：97.34%
@@ -172,12 +172,12 @@ OnlineLabel是基于Perceptron训练算法的分词、词性标注工具。Perce
 
 词性标注使用了CTB5.0、conll06以及人民日报1998年1-6月份语料训练模型，CTB5.0和conll6根据常用划分方式进行数据划分，人民日报使用2-6月份训练。
 
-###词性标注模型下载地址：
+### 词性标注模型下载地址：
 
 * [conll06](http://ir.hit.edu.cn/~zldeng/POS_Tagger_data/conll06-pos.zip)
 * [人民日报](http://ir.hit.edu.cn/~zldeng/POS_Tagger_data/peopleDaily1998-pos.zip)
 
-###词性标注模型性能：	
+### 词性标注模型性能：	
 
 * conll06性能：开发集：94.29%，测试集：93.74%
 * 人民日报使用1月份语料进行测试，性能为：97.98%
